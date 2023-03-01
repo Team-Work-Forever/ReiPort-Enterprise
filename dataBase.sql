@@ -1,5 +1,7 @@
 create database reiport;
 
+\c reiport;
+
 CREATE TABLE Pais(
     codPais SERIAL NOT NULL,
     pais VARCHAR(100) NOT NULL UNIQUE,
