@@ -228,6 +228,17 @@ CREATE TABLE HistoricoEstados(
                 REFERENCES Utilizador (idUtilizador)
 );
 
+CREATE TABLE PedidoTipo(
+    idPedido int NOT NULL,
+    idTipo int DEFAULT NULL,
+    PRIMARY KEY(idPedido, idTipo),
+    CONSTRAINT idPedido_fk1
+        FOREIGN KEY (idPedido)
+            REFERENCES Pedido (idPedido),
+    CONSTRAINT idTipo_fk2
+        FOREIGN KEY (idTipo)
+            REFERENCES Tipo (idTipo)
+);
 
 create unique index indexPedidos
 on pedido (idPedido);
