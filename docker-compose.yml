@@ -1,0 +1,28 @@
+version: '3.1'
+
+services:
+
+  reiport_db:
+    container_name: reiport_db
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: reiport
+    volumes:
+      - ./dataBase.sql:/docker-entrypoint-initdb.d/db.sql
+    networks:
+      - app-network
+
+  reiport_db_interface:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+networks:
+  app-network:
+    driver: bridge
