@@ -1,3 +1,2 @@
-psql -h localhost -U postgres -d postgres -c "drop database reiport"
 psql -h localhost -U postgres -d postgres -c "create database reiport"
 psql -h localhost -U postgres -d reiport -a -f dataBase.sql
