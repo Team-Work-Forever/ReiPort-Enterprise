@@ -25,7 +25,7 @@ CREATE TABLE PostalCode(
             REFERENCES Country (id)
 );
 
-CREATE TABLE guestType(
+CREATE TABLE GuestType(
     id SERIAL NOT NULL,
     name VARCHAR(100) NOT NULL UNIQUE,
     description VARCHAR(100) DEFAULT NULL,
@@ -246,6 +246,9 @@ create table GuestGroup(
     guest INT NOT NULL,
     begin_date DATE DEFAULT now(),
     exit_date DATE DEFAULT NULL,
+    created_at DATE DEFAULT now(),
+    updated_at DATE DEFAULT NULL,
+    deleted_at DATE DEFAULT NULL,
     PRIMARY KEY (request, guest),
     CONSTRAINT request_fk1
         FOREIGN KEY (request)
