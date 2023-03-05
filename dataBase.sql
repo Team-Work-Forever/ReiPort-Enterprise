@@ -5,9 +5,9 @@ create database reiport;
 CREATE TABLE Country(
     id SERIAL NOT NULL,
     country VARCHAR(100) NOT NULL UNIQUE,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
+    created_at DATE DEFAULT now(),
+    updated_at DATE DEFAULT NULL,
+    deleted_at DATE DEFAULT NULL,
     PRIMARY KEY (id)
 );
 
@@ -16,9 +16,9 @@ CREATE TABLE PostalCode(
     description VARCHAR(200) DEFAULT NULL,
     locality VARCHAR(100) NOT NULL,
     country INT NOT NULL,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
+    created_at DATE DEFAULT now(),
+    updated_at DATE DEFAULT NULL,
+    deleted_at DATE DEFAULT NULL,
     PRIMARY KEY (id),
     CONSTRAINT country_fk1
         FOREIGN KEY (country)
@@ -29,9 +29,9 @@ CREATE TABLE guestType(
     id SERIAL NOT NULL,
     name VARCHAR(100) NOT NULL UNIQUE,
     description VARCHAR(100) DEFAULT NULL,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
+    created_at DATE DEFAULT now(),
+    updated_at DATE DEFAULT NULL,
+    deleted_at DATE DEFAULT NULL,
     PRIMARY KEY (id)
 );
 
@@ -48,9 +48,9 @@ CREATE TABLE Guest( -- CLUB
     postal_code VARCHAR(8) NOT NULL,
     telephone NUMERIC(9) NOT NULL,
     guest_type INT NOT NULL,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
+    created_at DATE DEFAULT now(),
+    updated_at DATE DEFAULT NULL,
+    deleted_at DATE DEFAULT NULL,
     PRIMARY KEY (id),
     CONSTRAINT codPostal_fk1
         FOREIGN KEY (postal_code)
@@ -66,9 +66,9 @@ CREATE TABLE Driver( --PLAYER
     hasCam BOOLEAN NOT NULL DEFAULT FALSE,
     cc NUMERIC(8) NOT NULL,
     isWorking BOOLEAN NOT NULL DEFAULT FALSE,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
+    created_at DATE DEFAULT now(),
+    updated_at DATE DEFAULT NULL,
+    deleted_at DATE DEFAULT NULL,
     PRIMARY KEY (id),
     CONSTRAINT driver_fk1
         FOREIGN KEY (id)
@@ -81,18 +81,18 @@ CREATE TABLE Invoice(
     price_with_vat NUMERIC(9,2) NOT NULL CHECK(price_with_vat > 0),
     date_issue DATE NOT NULl DEFAULT now(),
     payment_date DATE DEFAULT NULL,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
+    created_at DATE DEFAULT now(),
+    updated_at DATE DEFAULT NULL,
+    deleted_at DATE DEFAULT NULL,
     PRIMARY KEY (id)
 );
 
 CREATE TABLE Fuel(
     id SERIAL NOT NULL,
     name VARCHAR(50) NOT NULL UNIQUE,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
+    created_at DATE DEFAULT now(),
+    updated_at DATE DEFAULT NULL,
+    deleted_at DATE DEFAULT NULL,
     PRIMARY KEY (id)
 );
 
@@ -100,9 +100,9 @@ CREATE TABLE Brand(
     id SERIAL NOT NULL,
     name VARCHAR(50) NOT NULL UNIQUE,
     logo bytea DEFAULT NULL,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
+    created_at DATE DEFAULT now(),
+    updated_at DATE DEFAULT NULL,
+    deleted_at DATE DEFAULT NULL,
     PRIMARY KEY (id)
 );
 
@@ -111,9 +111,9 @@ CREATE TABLE Model(
     name VARCHAR(50) NOT NULL UNIQUE,
     launch_date DATE NOT NULL,
     brand INT NOT NULL,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
+    created_at DATE DEFAULT now(),
+    updated_at DATE DEFAULT NULL,
+    deleted_at DATE DEFAULT NULL,
     PRIMARY KEY (id),
     CONSTRAINT brand_fk1
         FOREIGN KEY (brand)
@@ -123,9 +123,9 @@ CREATE TABLE Model(
 CREATE TABLE Type(
     id SERIAL NOT NULL,
     name VARCHAR(50) NOT NULL UNIQUE,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
+    created_at DATE DEFAULT now(),
+    updated_at DATE DEFAULT NULL,
+    deleted_at DATE DEFAULT NULL,
     PRIMARY KEY (id)
 );
 
@@ -140,9 +140,9 @@ CREATE TABLE Container(
     model INT NOT NULL,
     brand INT NOT NULL,
     type INT NOT NULL,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
+    created_at DATE DEFAULT now(),
+    updated_at DATE DEFAULT NULL,
+    deleted_at DATE DEFAULT NULL,
     PRIMARY KEY (license),
     CONSTRAINT model_fk1
         FOREIGN KEY (model)
@@ -166,9 +166,9 @@ CREATE TABLE Vehicle(
     brand INT NOT NULL,
     model INT NOT NULL,
     fuel INT NOT NULL,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
+    created_at DATE DEFAULT now(),
+    updated_at DATE DEFAULT NULL,
+    deleted_at DATE DEFAULT NULL,
     PRIMARY KEY (license),
     CONSTRAINT brand_fk1
         FOREIGN KEY (brand)
@@ -199,9 +199,9 @@ CREATE TABLE Request(
     license VARCHAR(8) NOT NULL,
     client INT NOT NULL,
     invoice INT NOT NULL,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
+    created_at DATE DEFAULT now(),
+    updated_at DATE DEFAULT NULL,
+    deleted_at DATE DEFAULT NULL,
     PRIMARY KEY (id),
     CONSTRAINT postal_code_dest_fk1
             FOREIGN KEY (postal_code_dest)
@@ -231,9 +231,9 @@ CREATE TABLE DriverGroup(
     driver INT NOT NULL,
     kilometers NUMERIC(9,2) NOT NULL CHECK(kilometers > 0),
     type CHAR NOT NULL DEFAULT 'p',
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
+    created_at DATE DEFAULT now(),
+    updated_at DATE DEFAULT NULL,
+    deleted_at DATE DEFAULT NULL,
     PRIMARY KEY (request, driver),
     CONSTRAINT request_fk1
             FOREIGN KEY (request)
@@ -246,9 +246,9 @@ CREATE TABLE DriverGroup(
 CREATE TABLE State(
     id SERIAL NOT NULL,
     name VARCHAR(50) NOT NULL,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
+    created_at DATE DEFAULT now(),
+    updated_at DATE DEFAULT NULL,
+    deleted_at DATE DEFAULT NULL,
     PRIMARY KEY (id)
 );
 
@@ -258,9 +258,9 @@ CREATE TABLE HistoricStates(
     request INT NOT NULL,
     state INT NOT NULL,
     guest INT NOT NULL,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
+    created_at DATE DEFAULT now(),
+    updated_at DATE DEFAULT NULL,
+    deleted_at DATE DEFAULT NULL,
     PRIMARY KEY (id),
     CONSTRAINT request_fk1
             FOREIGN KEY (request)
