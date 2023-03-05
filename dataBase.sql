@@ -65,7 +65,7 @@ CREATE TABLE Driver( --PLAYER
     has_adr BOOLEAN NOT NULL DEFAULT FALSE,
     has_cam BOOLEAN NOT NULL DEFAULT FALSE,
     cc NUMERIC(8) NOT NULL,
-    isWorking BOOLEAN NOT NULL DEFAULT FALSE,
+    is_working BOOLEAN NOT NULL DEFAULT FALSE,
     created_at DATE DEFAULT now(),
     updated_at DATE DEFAULT NULL,
     deleted_at DATE DEFAULT NULL,
@@ -354,10 +354,10 @@ create view requestDriver
 as select
     ri.request_id,
     guest.first_name || ' ' || guest.last_name as driver_full_name,
-    d.hasADR as adr,
-    d.hasCam as cam,
+    d.has_adr as adr,
+    d.has_cam as cam,
     d.cc as cc,
-    d.isWorking,
+    d.is_working,
     case
         when dg.type = 'p' then 'Principal'
         when dg.type = 'c' then 'Co-Piloto'
@@ -652,31 +652,31 @@ insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street
 insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('kbillborough5i@engadget.com', 'ISdZrT', 'Kai', 'Billborough', '1933-10-13', 128047992, 'Fairfield', '603', '2645-539', 540030825, 4);
 insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('bpeyto5j@opensource.org', 'wv5Q5VRC', 'Barbara-anne', 'Peyto', '1956-08-06', 429319530, 'Hoffman', '1', '4200-014', 533907927, 3);
 
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (1, false, false, 89045186, false);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (2, true, false, 54414452, true);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (3, true, true, 84114731, false);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (4, false, false, 83140382, false);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (5, true, true, 69864970, false);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (6, false, true, 12522769, true);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (7, false, false, 14679470, true);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (8, false, true, 25765122, false);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (9, false, true, 71094986, false);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (10, false, false, 35262875, true);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (11, true, true, 21268753, false);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (12, false, true, 75791320, true);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (13, false, false, 25453804, true);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (14, true, true, 95577104, false);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (15, false, true, 73227330, true);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (16, true, false, 59633937, false);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (17, true, false, 81622565, true);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (18, false, true, 50033224, true);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (19, false, false, 52058087, false);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (20, false, true, 41675874, true);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (21, false, true, 54194947, false);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (22, true, true, 74998897, true);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (23, false, true, 69219872, true);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (24, false, true, 67734477, false);
-insert into Driver (id, hasAdr, hasCam, cc, isWorking) values (25, true, false, 38382875, true);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (1, false, false, 89045186, false);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (2, true, false, 54414452, true);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (3, true, true, 84114731, false);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (4, false, false, 83140382, false);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (5, true, true, 69864970, false);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (6, false, true, 12522769, true);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (7, false, false, 14679470, true);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (8, false, true, 25765122, false);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (9, false, true, 71094986, false);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (10, false, false, 35262875, true);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (11, true, true, 21268753, false);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (12, false, true, 75791320, true);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (13, false, false, 25453804, true);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (14, true, true, 95577104, false);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (15, false, true, 73227330, true);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (16, true, false, 59633937, false);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (17, true, false, 81622565, true);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (18, false, true, 50033224, true);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (19, false, false, 52058087, false);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (20, false, true, 41675874, true);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (21, false, true, 54194947, false);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (22, true, true, 74998897, true);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (23, false, true, 69219872, true);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (24, false, true, 67734477, false);
+insert into Driver (id, has_adr, has_cam, cc, is_working) values (25, true, false, 38382875, true);
 
 insert into Invoice (price_without_vat, price_with_vat, date_issue, payment_date) values (8903612.0, 8189408.27, '2021-12-09', null);
 insert into Invoice (price_without_vat, price_with_vat, date_issue, payment_date) values (5619725.09, 8648658.0, '2021-11-01', '2023-01-17');
