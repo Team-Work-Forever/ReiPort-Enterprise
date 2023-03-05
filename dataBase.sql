@@ -81,19 +81,18 @@ CREATE TABLE Invoice(
     price_with_vat NUMERIC(9,2) NOT NULL CHECK(price_with_vat > 0),
     date_issue DATE NOT NULl DEFAULT now(),
     payment_date DATE DEFAULT NULL,
+    nif NUMERIC(9) DEFAULT NULL UNIQUE,
+    street VARCHAR(100) DEFAULT NULL,
+    port INT DEFAULT NULL,
+    postal_code VARCHAR(8) DEFAULT NULL,
+    payment_method INT DEFAULT NULL,
     createdAt DATE DEFAULT now(),
     updatedAt DATE DEFAULT NULL,
     deletedAt DATE DEFAULT NULL,
-    PRIMARY KEY (id)
-);
-
-CREATE TABLE Fuel(
-    id SERIAL NOT NULL,
-    name VARCHAR(50) NOT NULL UNIQUE,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    CONSTRAINT codPostal_fk1
+    FOREIGN KEY (postal_code)
+        REFERENCES PostalCode (id)
 );
 
 CREATE TABLE Brand(
@@ -120,15 +119,6 @@ CREATE TABLE Model(
             REFERENCES Brand (id) 
 );
 
-CREATE TABLE Type(
-    id SERIAL NOT NULL,
-    name VARCHAR(50) NOT NULL UNIQUE,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
-    PRIMARY KEY (id)
-);
-
 CREATE TABLE Container(
     license VARCHAR(11) NOT NULL,
     width NUMERIC(5,2) NOT NULL CHECK(width > 0),
@@ -139,7 +129,7 @@ CREATE TABLE Container(
     is_in_use BOOLEAN NOT NULL DEFAULT FALSE,
     model INT NOT NULL,
     brand INT NOT NULL,
-    type INT NOT NULL,
+    type INT DEFAULT NULL,
     createdAt DATE DEFAULT now(),
     updatedAt DATE DEFAULT NULL,
     deletedAt DATE DEFAULT NULL,
@@ -149,10 +139,7 @@ CREATE TABLE Container(
             REFERENCES Model (id),
     CONSTRAINT brand_fk2
         FOREIGN KEY (brand)
-            REFERENCES Brand (id),
-    CONSTRAINT type_fk3
-        FOREIGN KEY (type)
-            REFERENCES Type (id)
+            REFERENCES Brand (id)
 );
 
 CREATE TABLE Vehicle(
@@ -163,22 +150,15 @@ CREATE TABLE Vehicle(
     color VARCHAR(50) NOT NULL,
     max_supported_weight NUMERIC(9,2) NOT NULL CHECK(max_supported_weight > 0),
     is_in_use BOOLEAN NOT NULL DEFAULT FALSE,
-    brand INT NOT NULL,
     model INT NOT NULL,
-    fuel INT NOT NULL,
+    fuel INT DEFAULT NULL,
     createdAt DATE DEFAULT now(),
     updatedAt DATE DEFAULT NULL,
     deletedAt DATE DEFAULT NULL,
     PRIMARY KEY (license),
-    CONSTRAINT brand_fk1
-        FOREIGN KEY (brand)
-            REFERENCES Brand (id),
     CONSTRAINT model_fk2
         FOREIGN KEY (model)
-            REFERENCES Model (id),
-    CONSTRAINT fuel_fk3
-        FOREIGN KEY (fuel)
-            REFERENCES Fuel (id)
+            REFERENCES Model (id)
 );
 
 CREATE TABLE Request(
@@ -243,20 +223,11 @@ CREATE TABLE DriverGroup(
                 REFERENCES Driver (id)
 );
 
-CREATE TABLE State(
-    id SERIAL NOT NULL,
-    name VARCHAR(50) NOT NULL,
-    createdAt DATE DEFAULT now(),
-    updatedAt DATE DEFAULT NULL,
-    deletedAt DATE DEFAULT NULL,
-    PRIMARY KEY (id)
-);
-
 CREATE TABLE HistoricStates(
     id SERIAL NOT NULL,
     start_date DATE NOT NULL DEFAULT now(),
     request INT NOT NULL,
-    state INT NOT NULL,
+    state INT DEFAULT NULL,
     guest INT NOT NULL,
     createdAt DATE DEFAULT now(),
     updatedAt DATE DEFAULT NULL,
@@ -265,10 +236,21 @@ CREATE TABLE HistoricStates(
     CONSTRAINT request_fk1
             FOREIGN KEY (request)
                 REFERENCES request (id),
-    CONSTRAINT state_fk2
-            FOREIGN KEY (state)
-                REFERENCES State (id),
     CONSTRAINT guest_fk3
+            FOREIGN KEY (guest)
+                REFERENCES guest (id)
+);
+
+create table GuestGroup(
+    request INT NOT NULL,
+    guest INT NOT NULL,
+    begin_date DATE DEFAULT now(),
+    exit_date DATE DEFAULT NULL,
+    PRIMARY KEY (request, guest),
+    CONSTRAINT request_fk1
+        FOREIGN KEY (request)
+            REFERENCES request (id),
+    CONSTRAINT guest_fk2
             FOREIGN KEY (guest)
                 REFERENCES guest (id)
 );
@@ -769,11 +751,6 @@ insert into Invoice (price_without_vat, price_with_vat, date_issue, payment_date
 insert into Invoice (price_without_vat, price_with_vat, date_issue, payment_date) values (1891490.46, 7314670.0, '2019-07-04', null);
 insert into Invoice (price_without_vat, price_with_vat, date_issue, payment_date) values (8513909.0, 1186589.0, '2019-09-21', '2019-10-27');
 
-INSERT INTO Fuel (name) VALUES ('Diesel');
-INSERT INTO Fuel (name) VALUES ('Gasolina');
-INSERT INTO Fuel (name) VALUES ('Eletrico');
-INSERT INTO Fuel (name) VALUES ('Gas');
-
 INSERT INTO Brand (name) VALUES ('Iveco');
 INSERT INTO Brand (name) VALUES ('Scania');
 INSERT INTO Brand (name) VALUES ('Man');
@@ -801,166 +778,157 @@ INSERT INTO Model (name, launch_date, brand) VALUES ('F-Max', '2018-04-17', 6);
 INSERT INTO Model (name, launch_date, brand) VALUES ('Standard', '2000-04-17', 8);
 INSERT INTO Model (name, launch_date, brand) VALUES ('Open Top', '2000-04-17', 8);
 
-INSERT INTO type (name) VALUES ('Explosivo');
-INSERT INTO type (name) VALUES ('Gases');
-INSERT INTO type (name) VALUES ('LiquidosInflamaveis');
-INSERT INTO type (name) VALUES ('SolidasInflamaveis');
-INSERT INTO type (name) VALUES ('Maquinaria');
-INSERT INTO type (name) VALUES ('Seca');
-INSERT INTO type (name) VALUES ('Granel');
-INSERT INTO type (name) VALUES ('Gaiola');
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('R2-73-Z9', 961.22, 300, 882, 'Maroon', 9017979.0, true, 15, 4);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('N2-13-W8', 527.87, 476, 271, 'Fuscia', 6934303.64, true, 15, 8);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('K2-83-L5', 128.2, 229, 845, 'Goldenrod', 4355397.0, false, 8, 7);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('T2-93-P5', 307.55, 486, 321, 'Green', 8237932.0, false, 5, 1);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('B2-83-T4', 868.43, 808, 401, 'Teal', 4083162.85, true, 7, 3);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('N2-23-N9', 543.36, 230, 481, 'Red', 2465837.0, true, 14, 7);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('X2-33-F6', 597.54, 698, 654, 'Red', 3127583.46, true, 6, 7);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('V2-23-V4', 928.06, 370, 402, 'Maroon', 8936434.0, true, 2, 8);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('Y2-53-K9', 530.61, 414, 167, 'Crimson', 3056864.0, false, 10, 7);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('Y2-03-T7', 990.39, 853, 461, 'Purple', 2412497.52, true, 11, 8);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('X2-63-U5', 367.34, 208, 805, 'Fuscia', 8952230.0, true, 3, 2);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('L2-73-R0', 574.09, 278, 155, 'Green', 2629561.8, false, 2, 3);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('R2-23-R9', 598.07, 839, 943, 'Blue', 7412737.15, false, 4, 3);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('S2-33-P4', 338.25, 939, 116, 'Puce', 1112285.4, true, 5, 8);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('K2-23-H5', 746.91, 819, 917, 'Maroon', 4120410.43, true, 11, 4);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('I2-93-J7', 860.75, 599, 294, 'Violet', 2161733.42, true, 13, 5);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('U2-03-I8', 510.76, 936, 851, 'Mauv', 5233755.7, true, 10, 1);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('J2-23-L7', 418.48, 797, 423, 'Pink', 2599367.8, true, 5, 1);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('Y2-43-U9', 473.6, 193, 738, 'Teal', 7122557.0, true, 12, 8);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('R2-23-K2', 856.64, 275, 147, 'Khaki', 6751510.0, true, 17, 2);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('U2-83-R7', 130.15, 544, 933, 'Orange', 3730531.0, true, 4, 6);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('W2-03-Q2', 461.81, 396, 357, 'Green', 5034399.0, false, 15, 8);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('W2-83-I6', 653.64, 522, 939, 'Green', 5390037.0, false, 2, 7);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('J2-63-V8', 505.67, 863, 248, 'Maroon', 3524214.46, false, 13, 4);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('I2-33-M5', 832.49, 240, 558, 'Red', 7166072.0, false, 5, 7);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('Q2-53-O3', 823.78, 625, 578, 'Puce', 6179331.0, true, 11, 7);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('P2-43-N7', 416.75, 330, 836, 'Yellow', 2360439.22, true, 7, 1);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('F2-63-Y0', 850.18, 590, 454, 'Goldenrod', 1319116.59, true, 12, 2);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('N2-23-R0', 895.5, 436, 865, 'Goldenrod', 1916732.46, false, 6, 6);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('M2-93-D1', 312.56, 867, 925, 'Aquamarine', 9361372.0, true, 6, 8);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('W2-43-Q4', 326.28, 893, 963, 'Aquamarine', 6990412.0, false, 7, 3);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('E2-83-K9', 994.5, 815, 576, 'Puce', 1168175.0, false, 1, 8);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('K2-13-Y3', 969.05, 705, 373, 'Teal', 7192109.45, false, 6, 7);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('O2-43-C0', 823.94, 700, 738, 'Red', 6210781.51, true, 14, 5);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('U2-33-W4', 957.99, 707, 873, 'Crimson', 4665429.0, true, 14, 7);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('I2-23-C3', 401.17, 566, 395, 'Green', 7985527.56, false, 9, 2);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('F2-23-G5', 436.23, 924, 503, 'Blue', 6035765.0, false, 10, 3);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('J2-23-S0', 772.57, 468, 649, 'Puce', 6614175.63, true, 1, 2);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('M2-53-R1', 253.68, 406, 901, 'Purple', 9466556.0, true, 1, 2);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('E2-83-H2', 703.24, 727, 744, 'Maroon', 3876982.78, true, 1, 3);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('O2-83-U1', 406.85, 699, 454, 'Pink', 1380384.42, false, 1, 6);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('S2-03-J4', 407.71, 240, 990, 'Goldenrod', 6208515.55, true, 16, 6);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('I2-53-Y5', 845.93, 561, 689, 'Green', 4462376.51, true, 9, 4);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('M2-33-Z9', 968.61, 849, 755, 'Yellow', 6375884.23, false, 16, 1);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('I2-53-Z4', 295.88, 969, 767, 'Indigo', 1047448.0, true, 11, 7);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('Y2-33-P6', 787.92, 425, 320, 'Indigo', 1348134.87, false, 11, 6);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('Y2-73-G7', 276.07, 860, 770, 'Pink', 7673029.0, true, 9, 8);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('N2-43-H9', 846.88, 179, 722, 'Pink', 3387025.67, false, 9, 2);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('S2-93-S2', 893.56, 710, 618, 'Teal', 9874138.0, true, 4, 6);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('X2-83-C2', 218.92, 346, 428, 'Orange', 6149784.0, false, 1, 5);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('Z2-33-U5', 395.36, 832, 115, 'Blue', 3032613.93, false, 4, 4);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('Y2-93-S7', 874.75, 193, 323, 'Violet', 5308712.37, false, 5, 8);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('A2-83-Z8', 670.53, 788, 466, 'Maroon', 1289394.64, true, 12, 8);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('N2-33-Z8', 282.37, 455, 270, 'Indigo', 9103412.0, false, 8, 8);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('M2-33-Y0', 948.54, 118, 743, 'Violet', 3334156.98, true, 4, 1);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('Y2-93-Y5', 685.9, 243, 482, 'Khaki', 9595699.0, true, 15, 1);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('A2-13-L3', 881.8, 564, 208, 'Purple', 5741175.22, true, 5, 5);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('P2-73-P3', 754.2, 535, 359, 'Pink', 2444647.0, false, 6, 8);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('I2-83-V8', 118.65, 344, 133, 'Yellow', 1726443.69, true, 5, 8);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('Y2-93-F7', 936.85, 974, 629, 'Crimson', 5423987.0, false, 14, 3);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('V2-43-H4', 996.96, 936, 643, 'Khaki', 3077120.64, false, 9, 4);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('D2-33-C8', 766.27, 493, 426, 'Orange', 5406779.0, false, 13, 8);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('B2-33-S2', 766.61, 347, 460, 'Blue', 7891200.0, true, 5, 3);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('M2-33-M7', 255.48, 643, 123, 'Puce', 3730737.4, false, 13, 7);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('D2-13-T6', 421.34, 137, 949, 'Crimson', 3053793.03, true, 7, 1);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('W2-43-O5', 628.55, 989, 379, 'Teal', 4540731.0, true, 11, 1);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('K2-03-T6', 112.51, 946, 664, 'Purple', 5255942.11, true, 4, 6);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('G2-93-I1', 351.93, 210, 992, 'Teal', 3969969.0, true, 3, 6);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('F2-53-T0', 191.72, 672, 474, 'Blue', 7355553.41, true, 11, 8);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('S2-53-J0', 922.61, 292, 863, 'Indigo', 4220843.0, false, 17, 6);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('Q2-53-I9', 695.32, 584, 902, 'Pink', 1252168.7, false, 12, 8);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('H2-53-E8', 702.34, 926, 841, 'Mauv', 3047800.64, true, 14, 4);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('F2-13-I4', 910.03, 304, 926, 'Turquoise', 8237260.0, false, 13, 5);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('Z2-03-L1', 981.25, 360, 277, 'Teal', 9761528.0, false, 7, 7);
+insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand) values ('T2-53-G4', 122.76, 445, 860, 'Indigo', 5332231.88, false, 8, 1);
 
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('R2-73-Z9', 961.22, 300, 882, 'Maroon', 9017979.0, true, 15, 4, 8);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('N2-13-W8', 527.87, 476, 271, 'Fuscia', 6934303.64, true, 15, 8, 6);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('K2-83-L5', 128.2, 229, 845, 'Goldenrod', 4355397.0, false, 8, 7, 4);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('T2-93-P5', 307.55, 486, 321, 'Green', 8237932.0, false, 5, 1, 8);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('B2-83-T4', 868.43, 808, 401, 'Teal', 4083162.85, true, 7, 3, 8);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('N2-23-N9', 543.36, 230, 481, 'Red', 2465837.0, true, 14, 7, 7);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('X2-33-F6', 597.54, 698, 654, 'Red', 3127583.46, true, 6, 7, 1);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('V2-23-V4', 928.06, 370, 402, 'Maroon', 8936434.0, true, 2, 8, 4);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('Y2-53-K9', 530.61, 414, 167, 'Crimson', 3056864.0, false, 10, 7, 8);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('Y2-03-T7', 990.39, 853, 461, 'Purple', 2412497.52, true, 11, 8, 8);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('X2-63-U5', 367.34, 208, 805, 'Fuscia', 8952230.0, true, 3, 2, 4);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('L2-73-R0', 574.09, 278, 155, 'Green', 2629561.8, false, 2, 3, 5);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('R2-23-R9', 598.07, 839, 943, 'Blue', 7412737.15, false, 4, 3, 4);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('S2-33-P4', 338.25, 939, 116, 'Puce', 1112285.4, true, 5, 8, 2);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('K2-23-H5', 746.91, 819, 917, 'Maroon', 4120410.43, true, 11, 4, 5);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('I2-93-J7', 860.75, 599, 294, 'Violet', 2161733.42, true, 13, 5, 6);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('U2-03-I8', 510.76, 936, 851, 'Mauv', 5233755.7, true, 10, 1, 8);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('J2-23-L7', 418.48, 797, 423, 'Pink', 2599367.8, true, 5, 1, 8);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('Y2-43-U9', 473.6, 193, 738, 'Teal', 7122557.0, true, 12, 8, 5);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('R2-23-K2', 856.64, 275, 147, 'Khaki', 6751510.0, true, 17, 2, 8);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('U2-83-R7', 130.15, 544, 933, 'Orange', 3730531.0, true, 4, 6, 2);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('W2-03-Q2', 461.81, 396, 357, 'Green', 5034399.0, false, 15, 8, 5);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('W2-83-I6', 653.64, 522, 939, 'Green', 5390037.0, false, 2, 7, 5);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('J2-63-V8', 505.67, 863, 248, 'Maroon', 3524214.46, false, 13, 4, 4);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('I2-33-M5', 832.49, 240, 558, 'Red', 7166072.0, false, 5, 7, 8);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('Q2-53-O3', 823.78, 625, 578, 'Puce', 6179331.0, true, 11, 7, 5);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('P2-43-N7', 416.75, 330, 836, 'Yellow', 2360439.22, true, 7, 1, 1);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('F2-63-Y0', 850.18, 590, 454, 'Goldenrod', 1319116.59, true, 12, 2, 1);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('N2-23-R0', 895.5, 436, 865, 'Goldenrod', 1916732.46, false, 6, 6, 8);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('M2-93-D1', 312.56, 867, 925, 'Aquamarine', 9361372.0, true, 6, 8, 8);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('W2-43-Q4', 326.28, 893, 963, 'Aquamarine', 6990412.0, false, 7, 3, 7);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('E2-83-K9', 994.5, 815, 576, 'Puce', 1168175.0, false, 1, 8, 2);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('K2-13-Y3', 969.05, 705, 373, 'Teal', 7192109.45, false, 6, 7, 8);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('O2-43-C0', 823.94, 700, 738, 'Red', 6210781.51, true, 14, 5, 7);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('U2-33-W4', 957.99, 707, 873, 'Crimson', 4665429.0, true, 14, 7, 2);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('I2-23-C3', 401.17, 566, 395, 'Green', 7985527.56, false, 9, 2, 1);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('F2-23-G5', 436.23, 924, 503, 'Blue', 6035765.0, false, 10, 3, 7);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('J2-23-S0', 772.57, 468, 649, 'Puce', 6614175.63, true, 1, 2, 6);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('M2-53-R1', 253.68, 406, 901, 'Purple', 9466556.0, true, 1, 2, 1);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('E2-83-H2', 703.24, 727, 744, 'Maroon', 3876982.78, true, 1, 3, 3);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('O2-83-U1', 406.85, 699, 454, 'Pink', 1380384.42, false, 1, 6, 2);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('S2-03-J4', 407.71, 240, 990, 'Goldenrod', 6208515.55, true, 16, 6, 3);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('I2-53-Y5', 845.93, 561, 689, 'Green', 4462376.51, true, 9, 4, 7);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('M2-33-Z9', 968.61, 849, 755, 'Yellow', 6375884.23, false, 16, 1, 3);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('I2-53-Z4', 295.88, 969, 767, 'Indigo', 1047448.0, true, 11, 7, 1);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('Y2-33-P6', 787.92, 425, 320, 'Indigo', 1348134.87, false, 11, 6, 2);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('Y2-73-G7', 276.07, 860, 770, 'Pink', 7673029.0, true, 9, 8, 2);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('N2-43-H9', 846.88, 179, 722, 'Pink', 3387025.67, false, 9, 2, 8);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('S2-93-S2', 893.56, 710, 618, 'Teal', 9874138.0, true, 4, 6, 4);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('X2-83-C2', 218.92, 346, 428, 'Orange', 6149784.0, false, 1, 5, 7);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('Z2-33-U5', 395.36, 832, 115, 'Blue', 3032613.93, false, 4, 4, 2);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('Y2-93-S7', 874.75, 193, 323, 'Violet', 5308712.37, false, 5, 8, 1);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('A2-83-Z8', 670.53, 788, 466, 'Maroon', 1289394.64, true, 12, 8, 8);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('N2-33-Z8', 282.37, 455, 270, 'Indigo', 9103412.0, false, 8, 8, 4);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('M2-33-Y0', 948.54, 118, 743, 'Violet', 3334156.98, true, 4, 1, 6);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('Y2-93-Y5', 685.9, 243, 482, 'Khaki', 9595699.0, true, 15, 1, 4);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('A2-13-L3', 881.8, 564, 208, 'Purple', 5741175.22, true, 5, 5, 4);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('P2-73-P3', 754.2, 535, 359, 'Pink', 2444647.0, false, 6, 8, 4);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('I2-83-V8', 118.65, 344, 133, 'Yellow', 1726443.69, true, 5, 8, 3);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('Y2-93-F7', 936.85, 974, 629, 'Crimson', 5423987.0, false, 14, 3, 4);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('V2-43-H4', 996.96, 936, 643, 'Khaki', 3077120.64, false, 9, 4, 3);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('D2-33-C8', 766.27, 493, 426, 'Orange', 5406779.0, false, 13, 8, 7);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('B2-33-S2', 766.61, 347, 460, 'Blue', 7891200.0, true, 5, 3, 1);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('M2-33-M7', 255.48, 643, 123, 'Puce', 3730737.4, false, 13, 7, 1);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('D2-13-T6', 421.34, 137, 949, 'Crimson', 3053793.03, true, 7, 1, 4);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('W2-43-O5', 628.55, 989, 379, 'Teal', 4540731.0, true, 11, 1, 2);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('K2-03-T6', 112.51, 946, 664, 'Purple', 5255942.11, true, 4, 6, 6);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('G2-93-I1', 351.93, 210, 992, 'Teal', 3969969.0, true, 3, 6, 6);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('F2-53-T0', 191.72, 672, 474, 'Blue', 7355553.41, true, 11, 8, 5);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('S2-53-J0', 922.61, 292, 863, 'Indigo', 4220843.0, false, 17, 6, 5);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('Q2-53-I9', 695.32, 584, 902, 'Pink', 1252168.7, false, 12, 8, 3);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('H2-53-E8', 702.34, 926, 841, 'Mauv', 3047800.64, true, 14, 4, 1);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('F2-13-I4', 910.03, 304, 926, 'Turquoise', 8237260.0, false, 13, 5, 1);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('Z2-03-L1', 981.25, 360, 277, 'Teal', 9761528.0, false, 7, 7, 6);
-insert into Container (license, width, length, depth, color, max_supported_weight, is_in_use, model, brand, type) values ('T2-53-G4', 122.76, 445, 860, 'Indigo', 5332231.88, false, 8, 1, 4);
-
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('C2-43-H1', 640, 400, 'Fuscia', 5725.39, true, 5, 7, 4, 67);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('G2-73-O1', 980, 675, 'Turquoise', 16543.84, false, 1, 10, 3, 54);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('V2-03-N1', 553, 467, 'Puce', 34714.8, false, 2, 16, 4, 193);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('C2-03-D1', 203, 885, 'Teal', 6459.39, true, 4, 10, 3, 22);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('L2-53-R1', 757, 388, 'Crimson', 17487.81, false, 5, 1, 3, 143);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('C2-33-Y1', 689, 725, 'Indigo', 36747.46, false, 3, 2, 2, 152);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('S2-03-Z1', 411, 436, 'Indigo', 12173.26, false, 3, 11, 3, 60);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('Z2-63-L1', 942, 353, 'Pink', 10416.74, true, 5, 12, 1, 91);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('P2-03-K1', 493, 630, 'Red', 17359.8, true, 5, 12, 3, 206);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('E2-03-V1', 773, 812, 'Yellow', 32376.6, false, 5, 17, 3, 123);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('D2-33-C1', 852, 880, 'Violet', 31871.67, true, 5, 17, 4, 90);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('S2-93-E1', 927, 566, 'Yellow', 28129.45, true, 2, 4, 1, 115);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('V2-53-V1', 107, 970, 'Crimson', 545.39, false, 7, 13, 1, 141);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('M2-63-F1', 317, 162, 'Khaki', 36721.23, false, 4, 16, 1, 157);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('M2-63-G1', 812, 711, 'Goldenrod', 10166.45, false, 1, 1, 4, 131);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('V2-43-W1', 220, 687, 'Puce', 30281.58, false, 1, 4, 1, 69);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('S2-13-C1', 199, 974, 'Indigo', 14391.73, false, 4, 10, 4, 89);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('B2-13-U1', 300, 120, 'Puce', 41506.74, false, 7, 8, 3, 180);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('T2-03-S1', 524, 591, 'Yellow', 7059.31, false, 5, 1, 2, 200);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('Z2-43-M1', 396, 886, 'Aquamarine', 46673.41, true, 4, 4, 4, 135);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('K2-33-M1', 419, 832, 'Orange', 38854.96, true, 2, 11, 2, 102);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('S2-33-H1', 378, 240, 'Purple', 48033.52, false, 2, 10, 3, 233);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('M2-63-M1', 450, 958, 'Maroon', 38038.51, false, 5, 6, 3, 41);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('C2-53-T1', 493, 398, 'Pink', 32883.47, true, 6, 11, 1, 61);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('W2-23-W1', 260, 178, 'Maroon', 11495.96, true, 5, 1, 3, 71);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('P2-43-R1', 394, 329, 'Goldenrod', 21795.0, false, 8, 3, 1, 177);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('Y2-83-W1', 897, 610, 'Teal', 21011.16, false, 7, 17, 4, 62);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('Z2-93-P1', 490, 678, 'Violet', 42054.7, false, 8, 1, 4, 132);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('Q2-03-G1', 866, 642, 'Teal', 12442.34, false, 2, 3, 2, 130);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('C2-93-P1', 647, 619, 'Crimson', 17306.45, true, 2, 7, 1, 106);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('V2-83-J1', 642, 236, 'Purple', 19072.59, true, 5, 12, 3, 186);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('P2-43-Y1', 370, 941, 'Teal', 19386.71, false, 3, 6, 4, 123);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('H2-53-E1', 133, 145, 'Orange', 34906.39, true, 7, 9, 4, 61);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('S2-53-C1', 353, 133, 'Orange', 37062.25, false, 1, 9, 4, 215);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('A2-53-A1', 281, 779, 'Indigo', 29157.9, false, 5, 11, 4, 81);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('Y2-23-P1', 279, 459, 'Yellow', 13657.8, true, 3, 16, 1, 223);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('H2-33-T1', 130, 461, 'Khaki', 48665.13, true, 7, 6, 4, 12);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('R2-63-A1', 741, 748, 'Orange', 4992.13, true, 5, 7, 3, 82);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('G2-53-L1', 477, 891, 'Violet', 47185.61, true, 1, 11, 1, 129);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('Q2-93-Z1', 188, 479, 'Orange', 24976.55, false, 8, 14, 4, 152);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('B2-33-L1', 506, 522, 'Khaki', 45986.24, true, 2, 14, 1, 240);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('J2-83-H1', 631, 361, 'Yellow', 1551.22, true, 4, 12, 1, 200);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('T2-03-P1', 453, 197, 'Aquamarine', 34572.18, false, 8, 6, 4, 2);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('D2-73-M1', 675, 176, 'Violet', 17001.02, true, 6, 14, 3, 214);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('E2-63-R1', 908, 524, 'Red', 21330.36, true, 4, 13, 4, 237);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('D2-33-Q1', 996, 359, 'Green', 15384.51, true, 4, 17, 1, 195);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('S2-83-P1', 254, 243, 'Pink', 35936.31, true, 6, 15, 4, 144);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('Z2-33-E1', 704, 427, 'Maroon', 12717.71, false, 8, 4, 4, 222);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('R2-63-C1', 974, 975, 'Yellow', 28196.47, true, 5, 14, 4, 117);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('T2-63-X1', 225, 319, 'Turquoise', 27777.04, true, 1, 17, 1, 179);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('W2-23-H1', 369, 304, 'Fuscia', 26037.6, true, 3, 1, 3, 2);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('D2-43-B1', 445, 693, 'Turquoise', 4485.15, false, 7, 13, 1, 52);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('K2-73-V1', 653, 264, 'Blue', 25740.35, true, 7, 10, 4, 25);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('E2-23-Q1', 898, 914, 'Fuscia', 48239.0, false, 5, 11, 2, 88);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('P2-83-N1', 817, 114, 'Yellow', 21499.89, true, 5, 16, 3, 70);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('A2-03-D1', 369, 314, 'Orange', 48366.32, true, 4, 13, 2, 12);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('W2-73-J1', 376, 157, 'Green', 12060.83, false, 3, 2, 3, 50);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('B2-43-P1', 892, 222, 'Green', 30027.73, true, 6, 4, 4, 31);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('Z2-13-O1', 616, 676, 'Turquoise', 40701.91, true, 8, 3, 4, 9);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('A2-83-J1', 842, 349, 'Pink', 4439.66, true, 4, 14, 2, 216);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('H2-73-U1', 409, 211, 'Turquoise', 3941.96, false, 5, 4, 4, 3);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('G2-13-G1', 846, 662, 'Crimson', 7602.1, false, 5, 1, 4, 82);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('G2-83-D1', 793, 885, 'Green', 29724.5, false, 8, 1, 1, 86);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('E2-23-L1', 166, 810, 'Orange', 43932.98, true, 7, 15, 2, 134);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('V2-03-W1', 598, 734, 'Maroon', 30417.93, true, 4, 13, 1, 104);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('O2-73-J1', 752, 881, 'Mauv', 21901.55, false, 7, 3, 1, 159);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('X2-43-M1', 987, 906, 'Purple', 18818.53, true, 1, 9, 3, 119);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('X2-93-R1', 393, 177, 'Goldenrod', 47341.67, true, 2, 7, 2, 12);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('I2-73-U1', 323, 337, 'Indigo', 41533.26, true, 5, 17, 3, 54);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('L2-73-F1', 169, 509, 'Mauv', 4792.6, true, 8, 4, 1, 32);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('M2-63-U1', 833, 516, 'Khaki', 46955.55, true, 6, 2, 1, 188);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('Q2-93-R1', 189, 802, 'Goldenrod', 49648.9, true, 4, 9, 3, 17);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('S2-63-P1', 797, 727, 'Teal', 36825.31, true, 2, 1, 2, 193);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('P2-03-P1', 297, 353, 'Teal', 30762.21, true, 4, 8, 4, 172);
-insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, brand, model, fuel, tank) values ('J2-73-M1', 118, 565, 'Red', 47825.73, false, 4, 17, 1, 122);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('C2-43-H1', 640, 400, 'Fuscia', 5725.39, true, 7, 67);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('G2-73-O1', 980, 675, 'Turquoise', 16543.84, false, 10, 54);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('V2-03-N1', 553, 467, 'Puce', 34714.8, false, 16, 193);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('C2-03-D1', 203, 885, 'Teal', 6459.39, true, 10, 22);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('L2-53-R1', 757, 388, 'Crimson', 17487.81, false, 1, 143);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('C2-33-Y1', 689, 725, 'Indigo', 36747.46, false, 2, 152);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('S2-03-Z1', 411, 436, 'Indigo', 12173.26, false, 11, 60);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('Z2-63-L1', 942, 353, 'Pink', 10416.74, true, 12, 91);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('P2-03-K1', 493, 630, 'Red', 17359.8, true, 12, 206);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('E2-03-V1', 773, 812, 'Yellow', 32376.6, false, 17, 123);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('D2-33-C1', 852, 880, 'Violet', 31871.67, true, 17, 90);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('S2-93-E1', 927, 566, 'Yellow', 28129.45, true, 4, 115);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('V2-53-V1', 107, 970, 'Crimson', 545.39, false, 13, 141);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('M2-63-F1', 317, 162, 'Khaki', 36721.23, false, 16, 157);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('M2-63-G1', 812, 711, 'Goldenrod', 10166.45, false, 1, 131);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('V2-43-W1', 220, 687, 'Puce', 30281.58, false, 4, 69);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('S2-13-C1', 199, 974, 'Indigo', 14391.73, false, 10, 89);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('B2-13-U1', 300, 120, 'Puce', 41506.74, false, 8, 180);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('T2-03-S1', 524, 591, 'Yellow', 7059.31, false, 1, 200);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('Z2-43-M1', 396, 886, 'Aquamarine', 46673.41, true, 4, 135);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('K2-33-M1', 419, 832, 'Orange', 38854.96, true, 11, 102);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('S2-33-H1', 378, 240, 'Purple', 48033.52, false, 10, 233);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('M2-63-M1', 450, 958, 'Maroon', 38038.51, false, 6, 41);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('C2-53-T1', 493, 398, 'Pink', 32883.47, true, 11, 61);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('W2-23-W1', 260, 178, 'Maroon', 11495.96, true, 1, 71);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('P2-43-R1', 394, 329, 'Goldenrod', 21795.0, false, 3, 177);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('Y2-83-W1', 897, 610, 'Teal', 21011.16, false, 17, 62);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('Z2-93-P1', 490, 678, 'Violet', 42054.7, false, 1, 132);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('Q2-03-G1', 866, 642, 'Teal', 12442.34, false, 3, 130);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('C2-93-P1', 647, 619, 'Crimson', 17306.45, true, 7, 106);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('V2-83-J1', 642, 236, 'Purple', 19072.59, true, 12, 186);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('P2-43-Y1', 370, 941, 'Teal', 19386.71, false, 6, 123);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('H2-53-E1', 133, 145, 'Orange', 34906.39, true, 9, 61);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('S2-53-C1', 353, 133, 'Orange', 37062.25, false, 9, 215);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('A2-53-A1', 281, 779, 'Indigo', 29157.9, false, 11, 81);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('Y2-23-P1', 279, 459, 'Yellow', 13657.8, true, 16, 223);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('H2-33-T1', 130, 461, 'Khaki', 48665.13, true, 6, 12);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('R2-63-A1', 741, 748, 'Orange', 4992.13, true, 7, 82);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('G2-53-L1', 477, 891, 'Violet', 47185.61, true, 11, 129);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('Q2-93-Z1', 188, 479, 'Orange', 24976.55, false, 14, 152);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('B2-33-L1', 506, 522, 'Khaki', 45986.24, true, 14, 240);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('J2-83-H1', 631, 361, 'Yellow', 1551.22, true, 12, 200);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('T2-03-P1', 453, 197, 'Aquamarine', 34572.18, false, 6, 2);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('D2-73-M1', 675, 176, 'Violet', 17001.02, true, 14, 214);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('E2-63-R1', 908, 524, 'Red', 21330.36, true, 13, 237);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('D2-33-Q1', 996, 359, 'Green', 15384.51, true, 17, 195);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('S2-83-P1', 254, 243, 'Pink', 35936.31, true, 15, 144);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('Z2-33-E1', 704, 427, 'Maroon', 12717.71, false, 4, 222);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('R2-63-C1', 974, 975, 'Yellow', 28196.47, true, 14, 117);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('T2-63-X1', 225, 319, 'Turquoise', 27777.04, true, 17, 179);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('W2-23-H1', 369, 304, 'Fuscia', 26037.6, true, 1, 2);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('D2-43-B1', 445, 693, 'Turquoise', 4485.15, false, 13, 52);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('K2-73-V1', 653, 264, 'Blue', 25740.35, true, 10, 25);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('E2-23-Q1', 898, 914, 'Fuscia', 48239.0, false, 11,  88);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('P2-83-N1', 817, 114, 'Yellow', 21499.89, true, 16, 70);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('A2-03-D1', 369, 314, 'Orange', 48366.32, true, 13,  12);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('W2-73-J1', 376, 157, 'Green', 12060.83, false, 2, 50);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('B2-43-P1', 892, 222, 'Green', 30027.73, true, 4, 31);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('Z2-13-O1', 616, 676, 'Turquoise', 40701.91, true, 3, 9);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('A2-83-J1', 842, 349, 'Pink', 4439.66, true, 14, 216);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('H2-73-U1', 409, 211, 'Turquoise', 3941.96, false, 4, 3);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('G2-13-G1', 846, 662, 'Crimson', 7602.1, false, 1, 82);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('G2-83-D1', 793, 885, 'Green', 29724.5, false,  1, 86);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('E2-23-L1', 166, 810, 'Orange', 43932.98, true, 15, 134);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('V2-03-W1', 598, 734, 'Maroon', 30417.93, true, 13, 104);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('O2-73-J1', 752, 881, 'Mauv', 21901.55, false, 3, 159);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('X2-43-M1', 987, 906, 'Purple', 18818.53, true, 9, 119);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('X2-93-R1', 393, 177, 'Goldenrod', 47341.67, true, 7, 12);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('I2-73-U1', 323, 337, 'Indigo', 41533.26, true, 17, 54);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('L2-73-F1', 169, 509, 'Mauv', 4792.6, true, 4, 32);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('M2-63-U1', 833, 516, 'Khaki', 46955.55, true, 2, 188);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('Q2-93-R1', 189, 802, 'Goldenrod', 49648.9, true, 9, 17);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('S2-63-P1', 797, 727, 'Teal', 36825.31, true, 1, 193);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('P2-03-P1', 297, 353, 'Teal', 30762.21, true, 8, 172);
+insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank) values ('J2-73-M1', 118, 565, 'Red', 47825.73, false, 17, 122);
 
 insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (false, false, 6864424, '1/3/2025', '32138', '4200-014', 'Rieder', '30', 'Clyde Gallagher', 188645.72, 'J2-23-L7', 'I2-53-Y5', 'Z2-63-L1', 64, 9, '4900-281');
 insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (false, false, 8478072, '11/29/2025', '411', '3420-177', 'Morningstar', '1', 'Canary', 139717.17, 'Z2-33-U5', 'K2-83-L5', 'A2-83-J1', 35, 16, '4940-027');
@@ -1004,45 +972,74 @@ insert into DriverGroup (request, driver, kilometers) values (19, 15, 5777494);
 insert into DriverGroup (request, driver, kilometers) values (12, 14, 7248777);
 insert into DriverGroup (request, driver, kilometers) values (3, 25, 8177975);
 
-INSERT INTO state (name) VALUES ('Execucao');
-INSERT INTO state (name) VALUES ('Suspenso');
-INSERT INTO state (name) VALUES ('Anulado');
-INSERT INTO state (name) VALUES ('Concluido');
-INSERT INTO state (name) VALUES ('Agendado');
-INSERT INTO state (name) VALUES ('Pago');
+insert into HistoricStates (start_date, request, guest) values ('2025-05-20', 2, 29);
+insert into HistoricStates (start_date, request, guest) values ('2023-10-24', 3, 26);
+insert into HistoricStates (start_date, request, guest) values ('2023-03-13', 14, 66);
+insert into HistoricStates (start_date, request, guest) values ('2023-11-02', 3, 75);
+insert into HistoricStates (start_date, request, guest) values ('2023-10-01', 10, 28);
+insert into HistoricStates (start_date, request, guest) values ('2025-06-25', 5, 72);
+insert into HistoricStates (start_date, request, guest) values ('2023-12-17', 3, 36);
+insert into HistoricStates (start_date, request, guest) values ('2023-02-28', 6, 40);
+insert into HistoricStates (start_date, request, guest) values ('2025-06-10', 20, 71);
+insert into HistoricStates (start_date, request, guest) values ('2022-05-11', 16, 34);
+insert into HistoricStates (start_date, request, guest) values ('2025-02-09', 16, 27);
+insert into HistoricStates (start_date, request, guest) values ('2022-12-24', 9, 55);
+insert into HistoricStates (start_date, request, guest) values ('2023-07-23', 7, 42);
+insert into HistoricStates (start_date, request, guest) values ('2024-03-17', 12, 26);
+insert into HistoricStates (start_date, request, guest) values ('2024-10-04', 16, 61);
+insert into HistoricStates (start_date, request, guest) values ('2025-07-31', 6, 40);
+insert into HistoricStates (start_date, request, guest) values ('2022-11-08', 3, 45);
+insert into HistoricStates (start_date, request, guest) values ('2024-06-05', 8, 33);
+insert into HistoricStates (start_date, request, guest) values ('2024-12-23', 10, 48);
+insert into HistoricStates (start_date, request, guest) values ('2025-05-09', 13, 49);
+insert into HistoricStates (start_date, request, guest) values ('2022-03-08', 16, 64);
+insert into HistoricStates (start_date, request, guest) values ('2025-07-17', 10, 67);
+insert into HistoricStates (start_date, request, guest) values ('2024-09-17', 9, 48);
+insert into HistoricStates (start_date, request, guest) values ('2022-08-24', 6, 69);
+insert into HistoricStates (start_date, request, guest) values ('2025-07-20', 6, 54);
+insert into HistoricStates (start_date, request, guest) values ('2024-06-29', 7, 26);
+insert into HistoricStates (start_date, request, guest) values ('2023-04-14', 19, 29);
+insert into HistoricStates (start_date, request, guest) values ('2025-05-12', 2, 38);
+insert into HistoricStates (start_date, request, guest) values ('2024-10-06', 16, 34);
+insert into HistoricStates (start_date, request, guest) values ('2025-03-15', 9, 47);
+insert into HistoricStates (start_date, request, guest) values ('2023-12-09', 3, 48);
+insert into HistoricStates (start_date, request, guest) values ('2023-08-23', 6, 65);
+insert into HistoricStates (start_date, request, guest) values ('2024-05-11', 2, 25);
+insert into HistoricStates (start_date, request, guest) values ('2025-09-25', 5, 46);
+insert into HistoricStates (start_date, request, guest) values ('2023-10-22', 20, 72);
 
-insert into HistoricStates (start_date, request, state, guest) values ('2025-05-20', 2, 4, 29);
-insert into HistoricStates (start_date, request, state, guest) values ('2023-10-24', 3, 5, 26);
-insert into HistoricStates (start_date, request, state, guest) values ('2023-03-13', 14, 2, 66);
-insert into HistoricStates (start_date, request, state, guest) values ('2023-11-02', 3, 5, 75);
-insert into HistoricStates (start_date, request, state, guest) values ('2023-10-01', 10, 6, 28);
-insert into HistoricStates (start_date, request, state, guest) values ('2025-06-25', 5, 1, 72);
-insert into HistoricStates (start_date, request, state, guest) values ('2023-12-17', 3, 4, 36);
-insert into HistoricStates (start_date, request, state, guest) values ('2023-02-28', 6, 2, 40);
-insert into HistoricStates (start_date, request, state, guest) values ('2025-06-10', 20, 3, 71);
-insert into HistoricStates (start_date, request, state, guest) values ('2022-05-11', 16, 1, 34);
-insert into HistoricStates (start_date, request, state, guest) values ('2025-02-09', 16, 5, 27);
-insert into HistoricStates (start_date, request, state, guest) values ('2022-12-24', 9, 3, 55);
-insert into HistoricStates (start_date, request, state, guest) values ('2023-07-23', 7, 4, 42);
-insert into HistoricStates (start_date, request, state, guest) values ('2024-03-17', 12, 3, 26);
-insert into HistoricStates (start_date, request, state, guest) values ('2024-10-04', 16, 4, 61);
-insert into HistoricStates (start_date, request, state, guest) values ('2025-07-31', 6, 4, 40);
-insert into HistoricStates (start_date, request, state, guest) values ('2022-11-08', 3, 3, 45);
-insert into HistoricStates (start_date, request, state, guest) values ('2024-06-05', 8, 5, 33);
-insert into HistoricStates (start_date, request, state, guest) values ('2024-12-23', 10, 2, 48);
-insert into HistoricStates (start_date, request, state, guest) values ('2025-05-09', 13, 1, 49);
-insert into HistoricStates (start_date, request, state, guest) values ('2022-03-08', 16, 2, 64);
-insert into HistoricStates (start_date, request, state, guest) values ('2025-07-17', 10, 1, 67);
-insert into HistoricStates (start_date, request, state, guest) values ('2024-09-17', 9, 6, 48);
-insert into HistoricStates (start_date, request, state, guest) values ('2022-08-24', 6, 6, 69);
-insert into HistoricStates (start_date, request, state, guest) values ('2025-07-20', 6, 4, 54);
-insert into HistoricStates (start_date, request, state, guest) values ('2024-06-29', 7, 3, 26);
-insert into HistoricStates (start_date, request, state, guest) values ('2023-04-14', 19, 5, 29);
-insert into HistoricStates (start_date, request, state, guest) values ('2025-05-12', 2, 1, 38);
-insert into HistoricStates (start_date, request, state, guest) values ('2024-10-06', 16, 4, 34);
-insert into HistoricStates (start_date, request, state, guest) values ('2025-03-15', 9, 1, 47);
-insert into HistoricStates (start_date, request, state, guest) values ('2023-12-09', 3, 4, 48);
-insert into HistoricStates (start_date, request, state, guest) values ('2023-08-23', 6, 6, 65);
-insert into HistoricStates (start_date, request, state, guest) values ('2024-05-11', 2, 1, 25);
-insert into HistoricStates (start_date, request, state, guest) values ('2025-09-25', 5, 5, 46);
-insert into HistoricStates (start_date, request, state, guest) values ('2023-10-22', 20, 5, 72);
+insert into GuestGroup (request, guest, begin_date, exit_date) values (1, 66, '11/17/2022', '10/1/2025');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (17, 73, '4/17/2022', '8/24/2023');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (8, 58, '1/13/2023', '2/5/2025');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (1, 74, '11/28/2022', '9/27/2025');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (14, 73, '5/24/2022', '6/11/2024');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (2, 70, '4/30/2022', '4/29/2022');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (11, 72, '10/9/2022', '8/15/2022');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (6, 54, '3/24/2022', '4/21/2022');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (7, 64, '1/30/2023', '7/7/2025');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (17, 48, '10/3/2022', '9/14/2024');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (15, 32, '3/31/2022', '12/12/2025');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (19, 49, '1/5/2023', '7/27/2025');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (9, 46, '9/12/2022', '3/26/2024');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 25, '7/18/2022', '7/4/2023');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (8, 55, '8/18/2022', '10/19/2023');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (1, 49, '10/2/2022', '8/21/2022');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 57, '3/5/2022', '9/23/2025');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (20, 49, '11/6/2022', '8/3/2025');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (18, 67, '5/18/2022', '11/13/2023');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (10, 45, '5/14/2022', '4/11/2024');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (13, 67, '7/15/2022', '5/29/2022');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (12, 43, '10/13/2022', '2/26/2025');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 52, '5/24/2022', '5/27/2022');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 49, '5/30/2022', '5/21/2023');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (12, 73, '12/20/2022', '6/21/2024');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (11, 62, '4/7/2022', '7/27/2024');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (8, 26, '3/7/2022', '4/9/2024');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (4, 57, '8/22/2022', '2/5/2025');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (14, 57, '7/28/2022', '6/19/2024');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (10, 54, '5/17/2022', '7/14/2023');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (17, 49, '8/11/2022', '12/20/2023');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (14, 25, '1/1/2023', '2/16/2023');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (2, 25, '8/17/2022', '7/10/2025');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 59, '3/16/2022', '12/3/2023');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (3, 29, '1/8/2023', '10/7/2024');
