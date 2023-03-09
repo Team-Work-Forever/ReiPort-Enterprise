@@ -1,21 +1,22 @@
 -- Inserir cliente
-Create OR replace PROCEDURE addCliente (
-    c_nomeIni VARCHAR(50),
-    c_nomeApelido VARCHAR(50),
-    c_dataNasc DATE,
-    c_nif NUMERIC(9),
-    c_rua VARCHAR(100),
-    c_nPorta INT,
-    c_cPostal VARCHAR(8),
-    c_telefone NUMERIC(9),
-    c_email VARCHAR(200),
-    c_passwd VARCHAR(100)
+Create OR replace PROCEDURE addClient (
+    g_email VARCHAR(200),
+    g_passwd VARCHAR(100),
+    g_first_name VARCHAR(50),
+    g_last_name VARCHAR(50),
+    g_birth_date DATE,
+    g_nif VARCHAR(9),
+    g_street VARCHAR(100),
+    g_port INT,
+    g_postal_code VARCHAR(8),
+    g_telephone VARCHAR(9),
+    g_guest_type INT
 )
 LANGUAGE plpgsql AS
 $$ BEGIN
 
-    INSERT INTO utilizador (nomeIni, nomeApelido, dataNasc, nif, rua, nPorta, cPostal, telefone, email, passwd, idTipoUt) VALUES 
-    (c_nomeIni, c_nomeApelido, c_dataNasc, c_nif, c_rua, c_nPorta, c_cPostal, c_telefone, c_email, c_passwd, 1);
+    INSERT INTO Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) VALUES 
+    (g_email, g_passwd, g_first_name, g_last_name, g_birth_date, g_nif, g_street, g_port, g_postal_code, g_telephone, 1);
 
 END $$;
 

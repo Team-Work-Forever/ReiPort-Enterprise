@@ -35,7 +35,7 @@ CREATE TABLE GuestType(
     PRIMARY KEY (id)
 );
 
-CREATE TABLE Guest( -- CLUB
+CREATE TABLE Guest(
     id SERIAL NOT NULL,
     email VARCHAR(200) NOT NULL UNIQUE,
     passwd VARCHAR(100) NOT NULL,
@@ -60,7 +60,7 @@ CREATE TABLE Guest( -- CLUB
             REFERENCES guestType (id)
 );
 
-CREATE TABLE Driver( --PLAYER
+CREATE TABLE Driver(
     id INT NOT NULL,
     has_adr BOOLEAN NOT NULL DEFAULT FALSE,
     has_cam BOOLEAN NOT NULL DEFAULT FALSE,
@@ -666,10 +666,10 @@ insert into Driver (id, has_adr, has_cam, cc, is_working) values (23, false, tru
 insert into Driver (id, has_adr, has_cam, cc, is_working) values (24, false, true, 67734477, false);
 insert into Driver (id, has_adr, has_cam, cc, is_working) values (25, true, false, 38382875, true);
 
-insert into Invoice (price_without_vat, price_with_vat, payment_date, nif, street, port, payment_method, postal_code) VALUES (9000.50, 11070.62, NULL, '119048328', 'Eastwood', '9', NULL, '1000-139'); -- CLIENT 35
-insert into Invoice (price_without_vat, price_with_vat, payment_date, nif, street, port, payment_method, postal_code) VALUES (1200.50, 1476.62, '2024-05-11', '715277279', 'Orin', '19736', 1, '4480-330'); -- CLIENT 38
-insert into Invoice (price_without_vat, price_with_vat, payment_date, nif, street, port, payment_method, postal_code) VALUES (15000.00, 18450.00, NULL, 715373426, 'Walton', '7', NULL, '4940-027'); -- CLIENT 59
-insert into Invoice (price_without_vat, price_with_vat, payment_date, nif, street, port, payment_method, postal_code) VALUES (6500.75, 7995.92, NULL, '455104181', 'Chinook', '5263', NULL, '4200-014'); -- CLIENT 55
+insert into Invoice (price_without_vat, price_with_vat, payment_date, nif, street, port, payment_method, postal_code) VALUES (9000.50, 11070.62, NULL, '119048328', 'Eastwood', '9', NULL, '1000-139');
+insert into Invoice (price_without_vat, price_with_vat, payment_date, nif, street, port, payment_method, postal_code) VALUES (1200.50, 1476.62, '2024-05-11', '715277279', 'Orin', '19736', 1, '4480-330');
+insert into Invoice (price_without_vat, price_with_vat, payment_date, nif, street, port, payment_method, postal_code) VALUES (15000.00, 18450.00, NULL, 715373426, 'Walton', '7', NULL, '4940-027');
+insert into Invoice (price_without_vat, price_with_vat, payment_date, nif, street, port, payment_method, postal_code) VALUES (6500.75, 7995.92, NULL, '455104181', 'Chinook', '5263', NULL, '4200-014');
 
 INSERT INTO Brand (name) VALUES ('Iveco');
 INSERT INTO Brand (name) VALUES ('Scania');
