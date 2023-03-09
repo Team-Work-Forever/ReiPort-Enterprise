@@ -219,7 +219,7 @@ CREATE TABLE DriverGroup(
                 REFERENCES Driver (id)
 );
 
-CREATE TABLE HistoricStates(
+CREATE TABLE HistoricState(
     id SERIAL NOT NULL,
     start_date DATE NOT NULL DEFAULT now(),
     request INT NOT NULL,
@@ -263,39 +263,6 @@ on container (license);
 create unique index indexVehicle
 on Vehicle (license);
 
-create or replace function log_change_driver_type()
-  returns trigger
-  language plpgsql
-  as
-$$
-declare
-    _drivers int;
-begin
-
-    select count(*)
-    from drivergroup
-    where request = new.request
-    into _drivers;
-
-	if _drivers > 1 then
-        update drivergroup
-        set type = 'c'
-        where request = new.request and driver = new.driver;
-    else
-        update drivergroup
-        set type = 'p'
-        where request = new.request and driver = new.driver;
-	end if;
-
-	return new;
-end;
-$$;
-
-create or replace trigger alterar_tipo_driver
-  after insert
-  on drivergroup
-  for each ROW
-  execute procedure log_change_driver_type();
 
 create view requestInfo
 as select
@@ -892,74 +859,285 @@ insert into DriverGroup (request, driver, kilometers) values (19, 15, 5777494);
 insert into DriverGroup (request, driver, kilometers) values (12, 14, 7248777);
 insert into DriverGroup (request, driver, kilometers) values (7, 25, 8177975);
 
-insert into HistoricStates (start_date, state, request, guest) values ('2025-05-20', 5, 2, 29);
-insert into HistoricStates (start_date, state, request, guest) values ('2023-10-24', 1, 3, 26);
-insert into HistoricStates (start_date, state, request, guest) values ('2023-03-13', 5, 14, 66);
-insert into HistoricStates (start_date, state, request, guest) values ('2023-11-02', 2, 3, 75);
-insert into HistoricStates (start_date, state, request, guest) values ('2023-10-01', 5, 10, 28);
-insert into HistoricStates (start_date, state, request, guest) values ('2025-06-25', 5, 5, 72);
-insert into HistoricStates (start_date, state, request, guest) values ('2023-12-17', 1, 3, 36);
-insert into HistoricStates (start_date, state, request, guest) values ('2023-02-28', 5, 6, 40);
-insert into HistoricStates (start_date, state, request, guest) values ('2025-06-10', 5, 20, 71);
-insert into HistoricStates (start_date, state, request, guest) values ('2022-05-11', 5, 16, 34);
-insert into HistoricStates (start_date, state, request, guest) values ('2025-02-09', 1, 16, 27);
-insert into HistoricStates (start_date, state, request, guest) values ('2022-12-24', 5, 9, 55);
-insert into HistoricStates (start_date, state, request, guest) values ('2023-07-23', 5, 7, 42);
-insert into HistoricStates (start_date, state, request, guest) values ('2024-03-17', 1, 12, 26);
-insert into HistoricStates (start_date, state, request, guest) values ('2024-10-04', 2, 16, 61);
-insert into HistoricStates (start_date, state, request, guest) values ('2025-07-31', 1, 6, 40);
-insert into HistoricStates (start_date, state, request, guest) values ('2022-11-08', 4, 3, 45);
-insert into HistoricStates (start_date, state, request, guest) values ('2024-06-05', 5, 8, 33);
-insert into HistoricStates (start_date, state, request, guest) values ('2024-12-23', 1, 10, 48);
-insert into HistoricStates (start_date, state, request, guest) values ('2025-05-09', 5, 13, 49);
-insert into HistoricStates (start_date, state, request, guest) values ('2022-03-08', 1, 16, 64);
-insert into HistoricStates (start_date, state, request, guest) values ('2025-07-17', 3, 10, 67);
-insert into HistoricStates (start_date, state, request, guest) values ('2024-09-17', 1, 9, 48);
-insert into HistoricStates (start_date, state, request, guest) values ('2022-08-24', 1, 6, 69);
-insert into HistoricStates (start_date, state, request, guest) values ('2025-07-20', 1, 6, 54);
-insert into HistoricStates (start_date, state, request, guest) values ('2024-06-29', 1, 7, 26);
-insert into HistoricStates (start_date, state, request, guest) values ('2023-04-14', 5, 19, 29);
-insert into HistoricStates (start_date, state, request, guest) values ('2025-05-12', 1, 2, 38);
-insert into HistoricStates (start_date, state, request, guest) values ('2024-10-06', 4, 16, 34);
-insert into HistoricStates (start_date, state, request, guest) values ('2025-03-15', 4, 9, 47);
-insert into HistoricStates (start_date, state, request, guest) values ('2023-12-09', 6, 3, 48);
-insert into HistoricStates (start_date, state, request, guest) values ('2023-08-23', 1, 6, 65);
-insert into HistoricStates (start_date, state, request, guest) values ('2024-05-11', 4, 2, 25);
-insert into HistoricStates (start_date, state, request, guest) values ('2025-09-25', 1, 5, 46);
-insert into HistoricStates (start_date, state, request, guest) values ('2023-10-22', 1, 20, 72);
+insert into HistoricState (start_date, state, request, guest) values ('2025-05-20', 5, 2, 29);
+insert into HistoricState (start_date, state, request, guest) values ('2023-10-24', 1, 3, 26);
+insert into HistoricState (start_date, state, request, guest) values ('2023-03-13', 5, 14, 66);
+insert into HistoricState (start_date, state, request, guest) values ('2023-11-02', 2, 3, 75);
+insert into HistoricState (start_date, state, request, guest) values ('2023-10-01', 5, 10, 28);
+insert into HistoricState (start_date, state, request, guest) values ('2025-06-25', 5, 5, 72);
+insert into HistoricState (start_date, state, request, guest) values ('2023-12-17', 1, 3, 36);
+insert into HistoricState (start_date, state, request, guest) values ('2023-02-28', 5, 6, 40);
+insert into HistoricState (start_date, state, request, guest) values ('2025-06-10', 5, 20, 71);
+insert into HistoricState (start_date, state, request, guest) values ('2022-05-11', 5, 16, 34);
+insert into HistoricState (start_date, state, request, guest) values ('2025-02-09', 1, 16, 27);
+insert into HistoricState (start_date, state, request, guest) values ('2022-12-24', 5, 9, 55);
+insert into HistoricState (start_date, state, request, guest) values ('2023-07-23', 5, 7, 42);
+insert into HistoricState (start_date, state, request, guest) values ('2024-03-17', 1, 12, 26);
+insert into HistoricState (start_date, state, request, guest) values ('2024-10-04', 2, 16, 61);
+insert into HistoricState (start_date, state, request, guest) values ('2025-07-31', 1, 6, 40);
+insert into HistoricState (start_date, state, request, guest) values ('2022-11-08', 4, 3, 45);
+insert into HistoricState (start_date, state, request, guest) values ('2024-06-05', 5, 8, 33);
+insert into HistoricState (start_date, state, request, guest) values ('2024-12-23', 1, 10, 48);
+insert into HistoricState (start_date, state, request, guest) values ('2025-05-09', 5, 13, 49);
+insert into HistoricState (start_date, state, request, guest) values ('2022-03-08', 1, 16, 64);
+insert into HistoricState (start_date, state, request, guest) values ('2025-07-17', 3, 10, 67);
+insert into HistoricState (start_date, state, request, guest) values ('2024-09-17', 1, 9, 48);
+insert into HistoricState (start_date, state, request, guest) values ('2022-08-24', 1, 6, 69);
+insert into HistoricState (start_date, state, request, guest) values ('2025-07-20', 1, 6, 54);
+insert into HistoricState (start_date, state, request, guest) values ('2024-06-29', 1, 7, 26);
+insert into HistoricState (start_date, state, request, guest) values ('2023-04-14', 5, 19, 29);
+insert into HistoricState (start_date, state, request, guest) values ('2025-05-12', 1, 2, 38);
+insert into HistoricState (start_date, state, request, guest) values ('2024-10-06', 4, 16, 34);
+insert into HistoricState (start_date, state, request, guest) values ('2025-03-15', 4, 9, 47);
+insert into HistoricState (start_date, state, request, guest) values ('2023-12-09', 6, 3, 48);
+insert into HistoricState (start_date, state, request, guest) values ('2023-08-23', 1, 6, 65);
+insert into HistoricState (start_date, state, request, guest) values ('2024-05-11', 4, 2, 25);
+insert into HistoricState (start_date, state, request, guest) values ('2025-09-25', 1, 5, 46);
+insert into HistoricState (start_date, state, request, guest) values ('2023-10-22', 1, 20, 72);
 
-insert into GuestGroup (request, guest, begin_date, exit_date) values (1, 66, '11/17/2022', '10/1/2025');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (17, 73, '4/17/2022', '8/24/2023');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (8, 58, '1/13/2023', '2/5/2025');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (1, 74, '11/28/2022', '9/27/2025');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (14, 73, '5/24/2022', '6/11/2024');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (2, 70, '4/30/2022', '4/29/2022');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (11, 72, '10/9/2022', '8/15/2022');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (6, 54, '3/24/2022', '4/21/2022');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (7, 64, '1/30/2023', '7/7/2025');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (17, 48, '10/3/2022', '9/14/2024');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (15, 32, '3/31/2022', '12/12/2025');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (19, 49, '1/5/2023', '7/27/2025');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (9, 46, '9/12/2022', '3/26/2024');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 26, '7/18/2022', '7/4/2023');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (8, 55, '8/18/2022', '10/19/2023');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (1, 49, '10/2/2022', '8/21/2022');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 57, '3/5/2022', '9/23/2025');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (20, 49, '11/6/2022', '8/3/2025');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (18, 67, '5/18/2022', '11/13/2023');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (10, 45, '5/14/2022', '4/11/2024');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (13, 67, '7/15/2022', '5/29/2022');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (12, 43, '10/13/2022', '2/26/2025');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 52, '5/24/2022', '5/27/2022');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 49, '5/30/2022', '5/21/2023');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (12, 73, '12/20/2022', '6/21/2024');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (11, 62, '4/7/2022', '7/27/2024');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (8, 26, '3/7/2022', '4/9/2024');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (4, 57, '8/22/2022', '2/5/2025');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (14, 57, '7/28/2022', '6/19/2024');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (10, 54, '5/17/2022', '7/14/2023');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (17, 49, '8/11/2022', '12/20/2023');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (14, 27, '1/1/2023', '2/16/2023');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (2, 28, '8/17/2022', '7/10/2025');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 59, '3/16/2022', '12/3/2023');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (3, 29, '1/8/2023', '10/7/2024');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (1, 66, '2022-11-17', '2025-10-01');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (17, 73, '2022-04-17', '2023-08-24');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (8, 58, '2023-01-13', '2025-02-05');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (1, 74, '2022-11-28', '2025-09-27');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (14, 73, '2022-05-24', '2024-06-11');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (2, 70, '2022-04-30', '2022-04-29');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (11, 72, '2022-10-09', '2022-08-15');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (6, 54, '2022-03-24', '2022-04-21');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (7, 64, '2023-01-30', '2025-07-07');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (17, 48, '2022-10-03', '2024-09-14');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (15, 32, '2022-03-31', '2025-12-12');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (19, 49, '2023-01-05', '2025-07-27');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (9, 46, '2022-09-12', '2024-03-26');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 26, '2022-07-18', '2023-07-04');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (8, 55, '2022-08-18', '2023-10-19');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (1, 49, '2022-10-02', '2022-08-21');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 57, '2022-03-05', '2025-09-23');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (20, 49, '2022-11-06', '2025-08-03');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (18, 67, '2022-05-18', '2023-11-13');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (10, 45, '2022-05-14', '2024-04-11');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (13, 67, '2022-07-15', '2022-05-29');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (12, 43, '2022-10-13', '2025-02-26');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 52, '2022-05-24', '2022-05-27');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 49, '2022-05-30', '2023-05-21');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (12, 73, '2022-12-20', '2024-06-21');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (11, 62, '2022-04-07', '2024-07-27');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (8, 26, '2022-03-07', '2024-04-09');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (4, 57, '2022-08-22', '2025-02-05');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (14, 57, '2022-07-28', '2024-06-19');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (10, 54, '2022-05-17', '2023-07-14');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (17, 49, '2022-08-11', '2023-12-20');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (14, 27, '2023-01-01', '2023-02-16');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (2, 28, '2022-08-17', '2025-07-10');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 59, '2022-03-16', '2023-12-03');
+insert into GuestGroup (request, guest, begin_date, exit_date) values (3, 29, '2023-01-08', '2024-10-07');
+
+-- Sp to Add Client to the system
+CREATE OR replace PROCEDURE insertGuest (
+    g_email VARCHAR,
+    g_passwd VARCHAR,
+    g_first_name VARCHAR,
+    g_last_name VARCHAR,
+    g_birth_date DATE,
+    g_nif VARCHAR,
+    g_street VARCHAR,
+    g_port INT,
+    g_postal_code VARCHAR,
+    g_telephone VARCHAR,
+    g_type int
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+    INSERT INTO Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) VALUES 
+    (g_email, g_passwd, g_first_name, g_last_name, g_birth_date, g_nif, g_street, g_port, g_postal_code, g_telephone, g_type);
+
+END $$;
+
+-- Create Drivers
+-- TODO: #Não Testado
+CREATE OR replace PROCEDURE createDriver (
+    g_email VARCHAR,
+    g_passwd VARCHAR,
+    g_first_name VARCHAR,
+    g_last_name VARCHAR,
+    g_birth_date DATE,
+    g_nif VARCHAR,
+    g_street VARCHAR,
+    g_port INT,
+    g_postal_code VARCHAR,
+    g_telephone VARCHAR,
+    d_has_adr BOOLEAN,
+    d_has_cam BOOLEAN,
+    d_cc VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    _id_guest int;
+BEGIN
+
+    INSERT INTO Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) VALUES 
+    (g_email, g_passwd, g_first_name, g_last_name, g_birth_date, g_nif, g_street, g_port, g_postal_code, g_telephone, 4);
+
+    SELECT  
+        id
+    FROM guest where email = g_email
+    into _id_guest;
+
+    insert into Driver (id, has_adr, has_cam, cc) values 
+    (_id_guest, d_has_adr, d_has_cam, d_cc);
+
+END $$;
+
+-- Create Vehicle: args vehicle, model name, fuel
+CREATE OR replace PROCEDURE createVehicle (
+    v_license varchar,
+    v_power int,
+    v_displacement int,
+    v_tank numeric,
+    v_color varchar,
+    v_max_supported_weight numeric,
+    v_is_in_use boolean,
+    v_model_name int,
+    v_fuel int
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    _model_id int;
+BEGIN
+
+    -- Get ModelName
+    select
+        id into _model_id
+    from model
+    where name = v_model_name;
+
+    -- Insert Vehicle
+    insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank, fuel) values
+     (v_licence, v_power, v_displacement, v_color, v_max_supported_weight, v_is_in_use, _model_id, v_tank, v_fuel);
+
+END $$;
+
+-- Triggers 
+
+-- TODO: #Não Testado!
+-- Alterar Estado de Request de Concluido para Pago se e só se todas as faturas forem pagas 
+create or replace function log_payment_change_state()
+  returns trigger
+  language plpgsql
+as $$
+declare
+    _total_payed int;
+    _delivery_price int;
+    _diff int;
+begin
+
+    -- Get Invoices
+    select count(price_without_vat) into _total_payed
+    from invoice
+    where request = old.request;
+
+    -- Get Delivery Price
+    select delivery_price into _delivery_price
+    from request
+    where id = old.request;
+
+    -- Get Diff Payed
+    _diff := _delivery_price - _total_payed;
+
+    -- Compare If Request is totally payed
+    -- Alterar Estado Request
+    if _diff = 0 then
+        update historicstate
+            set state = 6
+        where request = old.request;
+    end if;
+
+    return new;
+end;
+$$;
+
+create or replace trigger change_state_hist_request
+  after insert
+  on invoice
+  for each ROW
+  execute procedure log_payment_change_state();
+
+-- Calculate price_with_vat
+create or replace function log_update_vat_invoce()
+  returns trigger
+  language plpgsql
+as $$
+begin
+
+    update invoice
+        set price_with_vat = price_without_vat * 1.23
+    where id = old.id;
+
+    return new;
+end;
+$$;
+
+create or replace trigger update_vat_invoce
+  after insert
+  on invoice
+  for each ROW
+  execute procedure log_payment_change_state();
+
+-- Verify if DeadLine is greatter then today's date
+create or replace function log_check_deadline()
+  returns trigger
+  language plpgsql
+as $$
+begin
+
+    if NEW.deadline <= now() then
+        RAISE EXCEPTION 'CANNOT DEFINE A DEADLINE BEFORE NOW';
+    end if;
+
+    return NEW;
+end;
+$$;
+
+-- Indicates which drivers are Co-pilots and pilots
+create or replace trigger check_deadline
+  before insert or update
+  on request
+  for each ROW
+  execute procedure log_check_deadline();
+
+create or replace function log_change_driver_type()
+  returns trigger
+  language plpgsql
+  as
+$$
+declare
+    _drivers int;
+begin
+
+    select count(*)
+    from drivergroup
+    where request = new.request
+    into _drivers;
+
+	if _drivers > 1 then
+        update drivergroup
+        set type = 'c'
+        where request = new.request and driver = new.driver;
+    else
+        update drivergroup
+        set type = 'p'
+        where request = new.request and driver = new.driver;
+	end if;
+
+	return new;
+end;
+$$;
+
+create or replace trigger change_driver_type
+  after insert
+  on drivergroup
+  for each ROW
+  execute procedure log_change_driver_type();
