@@ -98,7 +98,7 @@ CREATE TABLE Invoice(
 CREATE TABLE Brand(
     id SERIAL NOT NULL,
     name VARCHAR(50) NOT NULL UNIQUE,
-    logo bytea DEFAULT NULL,
+    logo varchar DEFAULT NULL,
     created_at DATE DEFAULT now(),
     updated_at DATE DEFAULT NULL,
     deleted_at DATE DEFAULT NULL,
