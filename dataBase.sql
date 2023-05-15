@@ -317,27 +317,27 @@ inner join HistoricState hs
     on hs.request = r.id
 ;
 
-create view requestDriver
-as select
-    ri.request_id,
-    guest.first_name || ' ' || guest.last_name as driver_full_name,
-    d.has_adr as adr,
-    d.has_cam as cam,
-    d.cc as cc,
-    d.is_working,
-    case
-        when dg.type = 'p' then 'Principal'
-        when dg.type = 'c' then 'Co-Piloto'
-    end as type,
-    dg.kilometers
-from requestInfo ri
-inner join DriverGroup dg
-    on ri.request_id = dg.request
-inner join driver d
-    on d.id = dg.driver
-inner join guest guest
-    on guest.id = d.id
-;
+-- create view requestDriver
+-- as select
+--     ri.request_id,
+--     guest.first_name || ' ' || guest.last_name as driver_full_name,
+--     d.has_adr as adr,
+--     d.has_cam as cam,
+--     d.cc as cc,
+--     d.is_working,
+--     case
+--         when dg.type = 'p' then 'Principal'
+--         when dg.type = 'c' then 'Co-Piloto'
+--     end as type,
+--     dg.kilometers
+-- from requestInfo ri
+-- inner join DriverGroup dg
+--     on ri.request_id = dg.request
+-- inner join driver d
+--     on d.id = dg.driver
+-- inner join guest guest
+--     on guest.id = d.id
+-- ;
 
 -- Inserts
 
@@ -422,10 +422,10 @@ INSERT INTO guestType (name) VALUES ('Gestor');
 INSERT INTO guestType (name) VALUES ('Motorista');
 INSERT INTO guestType (name) VALUES ('Admin');
 
-insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('cavas.callahan@reiport-entreprise.trl', '$2a$10$mQFNobhjgZpJeFgYj.8ot.vEMOnKqSr3kIwjUYT135Umd0dVHyDny', 'Rudyard', 'McElwee', '2002-12-25', '264619567', 'Gulseth', '36492', '3520-039', '286315192', 4);
-insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('david.shot@reiport-entreprise.trl', '$2a$10$hktIJmDm5Jq6iVPWp3gs.OKzfmod5HacpCxWVaMPsppmdVv0p/1NG', 'Rudyard', 'McElwee', '2002-12-25', '264633567', 'Gulseth', '36492', '3520-039', '286315192', 5);
-insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('steven.cooper@reiport-entreprise.trl', '$2a$10$FJVkZJp8i5st8nR1tPZe0.Kiknwc1zJ1LmW3nxCsI93gAdkhN0.KO', 'Rudyard', 'McElwee', '2002-12-25', '264626567', 'Gulseth', '36492', '3520-039', '286315192', 3);
-insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('olivia.hobberts@reiport-entreprise.trl', '$2a$10$OzC4QI4yylvGrMloi/hRhuWtICUmWgHaXxYGIm7p6H4dXBPeu4kQu', 'Rudyard', 'McElwee', '2002-12-25', '264621567', 'Gulseth', '36492', '3520-039', '286315192', 2);
+insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('cavas.callahan@reiport-entreprise.trl', '$2a$10$325Z0JxYAjQZxviCgwlChubVUrmganbEkawJxE0pwRQOlfolWDZ7G', 'Rudyard', 'McElwee', '2002-12-25', '264619567', 'Gulseth', '36492', '3520-039', '286315192', 4);
+insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('david.shot@reiport-entreprise.trl', '$2a$10$AH9Wgbq/MbehSfVE7uP5DuEeY1Fvnw8z925yIm1eGmjJ6FcYOKEYq', 'Rudyard', 'McElwee', '2002-12-25', '264633567', 'Gulseth', '36492', '3520-039', '286315192', 5);
+insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('steven.cooper@reiport-entreprise.trl', '$2a$10$XW6/v9rXA205uAXBbAKrNu0F3XSyD5KDXRSNMQwTEErljzNHVni6u', 'Rudyard', 'McElwee', '2002-12-25', '264626567', 'Gulseth', '36492', '3520-039', '286315192', 3);
+insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('olivia.hobberts@reiport-entreprise.trl', '$2a$10$dFnU7lKYQE.sgWNONuJrIePmnAlHtjntKsdrlHAxWiT7m2zIU0jiK', 'Rudyard', 'McElwee', '2002-12-25', '264621567', 'Gulseth', '36492', '3520-039', '286315192', 2);
 insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('rmcelwee0@domainmarket.com', '$2b$12$iYoLoV5aWgfaH/2ReX7g0OvI/C5r548eMFQuJRTnlnrXgn2OYPwpe', 'Rudyard', 'McElwee', '2002-12-25', '264620567', 'Gulseth', '36492', '3520-039', '286315192', 4);
 insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('kredmile1@psu.edu', '$2b$12$0BvZ00VCifMhILm3ArjRrOM0k.108xOKLNRekYRyzJNpqkbE7JnPy', 'Kippie', 'Redmile', '2009-07-22', '826161141', 'Garrison', '50890', '1000-139', '104547699', 4);
 insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('nchishull2@chronoengine.com', '$2b$12$IATx04TNbPf0KCG72OmHbe/o32Ib2L.qMzvsB/CAViI7kR2qn8fpi', 'Naoma', 'Chishull', '1977-12-20', '259290654', 'Bluejay', '12122', '3420-177', '284883167', 4);
@@ -820,26 +820,6 @@ insert into Vehicle (license, power, displacement, color, max_supported_weight, 
 insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank, fuel) values ('P2-03-P1', 297, 353, 'Teal', 30762.21, true, 8, 172, 1);
 insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank, fuel) values ('J2-73-M1', 118, 565, 'Red', 47825.73, false, 17, 122, 3);
 
-insert into DriverGroup (request, driver, kilometers) values (20, 14, 1241594);
-insert into DriverGroup (request, driver, kilometers) values (3, 21, 6362356);
-insert into DriverGroup (request, driver, kilometers) values (1, 11, 8834998);
-insert into DriverGroup (request, driver, kilometers) values (6, 21, 3130463);
-insert into DriverGroup (request, driver, kilometers) values (1, 2, 1221144);
-insert into DriverGroup (request, driver, kilometers) values (4, 3, 4321103);
-insert into DriverGroup (request, driver, kilometers) values (8, 16, 2232875);
-insert into DriverGroup (request, driver, kilometers) values (1, 6, 7899696);
-insert into DriverGroup (request, driver, kilometers) values (6, 5, 4594762);
-insert into DriverGroup (request, driver, kilometers) values (19, 5, 3224492);
-insert into DriverGroup (request, driver, kilometers) values (18, 1, 6233086);
-insert into DriverGroup (request, driver, kilometers) values (5, 12, 2757319);
-insert into DriverGroup (request, driver, kilometers) values (2, 3, 3772751);
-insert into DriverGroup (request, driver, kilometers) values (5, 25, 9893794);
-insert into DriverGroup (request, driver, kilometers) values (11, 17, 3467741);
-insert into DriverGroup (request, driver, kilometers) values (16, 10, 3320824);
-insert into DriverGroup (request, driver, kilometers) values (4, 10, 4178506);
-insert into DriverGroup (request, driver, kilometers) values (19, 15, 5777494);
-insert into DriverGroup (request, driver, kilometers) values (12, 14, 7248777);
-insert into DriverGroup (request, driver, kilometers) values (7, 25, 8177975);
 -- Stored Procedures
 
 -- Link Worker or Client to Request
