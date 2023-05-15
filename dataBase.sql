@@ -160,8 +160,9 @@ CREATE TABLE Vehicle(
 
 CREATE TABLE Request(
     id SERIAL NOT NULL,
-    truck_availability BOOLEAN NOT NULL DEFAULT FALSE,
-    container_availability BOOLEAN NOT NULL DEFAULT FALSE,
+    company_name VARCHAR(100) DEFAULT NULL,
+    truck_availability BOOLEAN DEFAULT FALSE,
+    container_availability BOOLEAN DEFAULT FALSE,
     cargo_weight NUMERIC(9,2) NOT NULL CHECK(cargo_weight > 0),
     deadline DATE NOT NULL,
     port_dest INT NOT NULL,
@@ -171,9 +172,9 @@ CREATE TABLE Request(
     port_ori INT NOT NULL,
     street_ori VARCHAR(100) NOT NULL,
     delivery_price NUMERIC(9,2) NOT NULL CHECK(delivery_price > 0),
-    container_license VARCHAR(11) NOT NULL,
+    container_license VARCHAR(11) DEFAULT NULL,
     container_license_second VARCHAR(11) DEFAULT NULL,
-    license VARCHAR(8) NOT NULL,
+    license VARCHAR(8) DEFAULT NULL,
     client INT NOT NULL,
     invoice INT DEFAULT NULL,
     created_at DATE DEFAULT now(),
@@ -222,7 +223,7 @@ CREATE TABLE DriverGroup(
 
 CREATE TABLE HistoricState(
     id SERIAL NOT NULL,
-    start_date DATE NOT NULL DEFAULT now(),
+    start_date DATE DEFAULT now(),
     request INT NOT NULL,
     state INT NOT NULL,
     guest INT NOT NULL,
@@ -267,7 +268,9 @@ on Vehicle (license);
 
 create view requestInfo
 as select
-    r.id as request_id,
+    r.id,
+    hs.state,
+    r.company_name,
     r.truck_availability,
     r.container_availability,
     r.cargo_weight,
@@ -285,11 +288,10 @@ as select
     countryOri.country as country_ori,
     container_first.license as container_first,
     container_second.license as container_second,
-    truck.license as truck_license,
-    guest.first_name as client,
-    inv.price_with_vat,
-    inv.date_issue,
-    inv.payment_date
+    truck.license as license,
+    guest.id as client,
+    inv.id as invoice,
+    r.created_at
 from request r
 inner join PostalCode postal_dest
     on r.postal_code_dest = postal_dest.id
@@ -299,19 +301,20 @@ inner join PostalCode postal_ori
     on r.postal_code_ori = postal_ori.id
 inner join country as countryOri
     on countryOri.id = postal_ori.country
-inner join container container_first
+left join container container_first
     on container_first.license = r.container_license
 left join container container_second
     on container_second.license = r.container_license_second
-inner join vehicle truck
+left join vehicle truck
     on truck.license = r.license
-inner join invoice inv
+left join invoice inv
     on inv.id = r.invoice
 inner join guest guest
     on guest.id = r.client
 inner join guestType guest_type
     on guest_type.id = guest.guest_type
-where guest_type.name = 'Cliente'
+inner join HistoricState hs
+    on hs.request = r.id
 ;
 
 create view requestDriver
@@ -419,6 +422,10 @@ INSERT INTO guestType (name) VALUES ('Gestor');
 INSERT INTO guestType (name) VALUES ('Motorista');
 INSERT INTO guestType (name) VALUES ('Admin');
 
+insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('cavas.callahan@reiport-entreprise.trl', '$2a$10$mQFNobhjgZpJeFgYj.8ot.vEMOnKqSr3kIwjUYT135Umd0dVHyDny', 'Rudyard', 'McElwee', '2002-12-25', '264619567', 'Gulseth', '36492', '3520-039', '286315192', 4);
+insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('david.shot@reiport-entreprise.trl', '$2a$10$hktIJmDm5Jq6iVPWp3gs.OKzfmod5HacpCxWVaMPsppmdVv0p/1NG', 'Rudyard', 'McElwee', '2002-12-25', '264633567', 'Gulseth', '36492', '3520-039', '286315192', 5);
+insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('steven.cooper@reiport-entreprise.trl', '$2a$10$FJVkZJp8i5st8nR1tPZe0.Kiknwc1zJ1LmW3nxCsI93gAdkhN0.KO', 'Rudyard', 'McElwee', '2002-12-25', '264626567', 'Gulseth', '36492', '3520-039', '286315192', 3);
+insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('olivia.hobberts@reiport-entreprise.trl', '$2a$10$OzC4QI4yylvGrMloi/hRhuWtICUmWgHaXxYGIm7p6H4dXBPeu4kQu', 'Rudyard', 'McElwee', '2002-12-25', '264621567', 'Gulseth', '36492', '3520-039', '286315192', 2);
 insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('rmcelwee0@domainmarket.com', '$2b$12$iYoLoV5aWgfaH/2ReX7g0OvI/C5r548eMFQuJRTnlnrXgn2OYPwpe', 'Rudyard', 'McElwee', '2002-12-25', '264620567', 'Gulseth', '36492', '3520-039', '286315192', 4);
 insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('kredmile1@psu.edu', '$2b$12$0BvZ00VCifMhILm3ArjRrOM0k.108xOKLNRekYRyzJNpqkbE7JnPy', 'Kippie', 'Redmile', '2009-07-22', '826161141', 'Garrison', '50890', '1000-139', '104547699', 4);
 insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('nchishull2@chronoengine.com', '$2b$12$IATx04TNbPf0KCG72OmHbe/o32Ib2L.qMzvsB/CAViI7kR2qn8fpi', 'Naoma', 'Chishull', '1977-12-20', '259290654', 'Bluejay', '12122', '3420-177', '284883167', 4);
@@ -634,11 +641,6 @@ insert into Driver (id, has_adr, has_cam, cc, is_working) values (23, false, tru
 insert into Driver (id, has_adr, has_cam, cc, is_working) values (24, false, true, '67734477', false);
 insert into Driver (id, has_adr, has_cam, cc, is_working) values (25, true, false, '38382875', true);
 
-insert into Invoice (price_without_vat, price_with_vat, payment_date, nif, street, port, payment_method, postal_code) VALUES (9000.50, 11070.62, NULL, '119048328', 'Eastwood', '9', NULL, '1000-139');
-insert into Invoice (price_without_vat, price_with_vat, payment_date, nif, street, port, payment_method, postal_code) VALUES (1200.50, 1476.62, '2024-05-11', '715277279', 'Orin', '19736', 1, '4480-330');
-insert into Invoice (price_without_vat, price_with_vat, payment_date, nif, street, port, payment_method, postal_code) VALUES (15000.00, 18450.00, NULL, '715373426', 'Walton', '7', NULL, '4940-027');
-insert into Invoice (price_without_vat, price_with_vat, payment_date, nif, street, port, payment_method, postal_code) VALUES (6500.75, 7995.92, NULL, '455104181', 'Chinook', '5263', NULL, '4200-014');
-
 INSERT INTO Brand (name) VALUES ('Iveco');
 INSERT INTO Brand (name) VALUES ('Scania');
 INSERT INTO Brand (name) VALUES ('Man');
@@ -818,27 +820,6 @@ insert into Vehicle (license, power, displacement, color, max_supported_weight, 
 insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank, fuel) values ('P2-03-P1', 297, 353, 'Teal', 30762.21, true, 8, 172, 1);
 insert into Vehicle (license, power, displacement, color, max_supported_weight, is_in_use, model, tank, fuel) values ('J2-73-M1', 118, 565, 'Red', 47825.73, false, 17, 122, 3);
 
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (false, false, 6864424, '1/3/2025', '32138', '4200-014', 'Rieder', '30', 'Clyde Gallagher', 188645.72, 'J2-23-L7', 'I2-53-Y5', 'Z2-63-L1', 64, NULL, '4900-281');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (false, false, 8478072, '11/29/2025', '411', '3420-177', 'Morningstar', '1', 'Canary', 139717.17, 'Z2-33-U5', 'K2-83-L5', 'A2-83-J1', 35, 1, '4940-027');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (false, true, 2318309, '8/13/2024', '95121', '4490-251', 'Stuart', '5', 'Fair Oaks', 194567.71, 'N2-43-H9', 'Y2-53-K9', 'T2-03-S1', 38, 2, '2610-181');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (false, false, 2875034, '2/7/2026', '52', '4705-480', 'Trailsway', '58', 'Continental', 124905.81, 'F2-63-Y0', 'I2-83-V8', 'E2-23-L1', 59, NULL, '4200-014');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (false, false, 6280363, '8/10/2025', '79', '7150-123', 'Southridge', '10', 'Warrior', 66088.15, 'U2-03-I8', 'L2-73-R0', 'G2-73-O1', 55, NULL, '4705-480');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (true, false, 6120764, '6/29/2024', '59', '4900-281', 'Kingsford', '22664', 'Straubel', 165150.55, 'B2-33-S2', 'Y2-53-K9', 'X2-43-M1', 58, NULL, '3420-177');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (false, true, 9207649, '6/20/2024', '305', '4475-045', 'Northwestern', '236', 'Messerschmidt', 152754.14, 'W2-43-Q4', 'R2-23-K2', 'S2-13-C1', 68, NULL, '4475-045');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (true, true, 5430160, '6/5/2025', '64148', '4490-251', 'Haas', '6921', 'Killdeer', 170719.99, 'R2-73-Z9', 'Y2-73-G7', 'B2-13-U1', 32, NULL, '3420-177');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (false, false, 3457818, '1/9/2026', '80', '4475-045', 'Buhler', '23527', 'Warbler', 88729.78, 'W2-43-Q4', 'B2-83-T4', 'S2-63-P1', 59, 3, '4940-027');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (false, false, 7276042, '3/14/2025', '396', '4200-014', 'Crownhardt', '670', 'Messerschmidt', 124479.68, 'D2-33-C8', 'W2-43-O5', 'V2-03-N1', 75, NULL, '1000-139');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (true, true, 1038671, '10/26/2024', '74', '3040-474', 'Village Green', '6', 'Ryan', 192723.18, 'H2-53-E8', 'W2-43-Q4', 'A2-03-D1', 36, NULL, '4900-281');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (true, false, 6330370, '10/3/2024', '38310', '2610-181', 'Hooker', '33399', 'Cottonwood', 188790.44, 'D2-33-C8', 'Y2-93-F7', 'W2-23-H1', 38, NULL, '4905-067');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (true, false, 1843130, '1/30/2026', '0', '3040-474', 'Ridge Oak', '38', 'Hauk', 121160.77, 'Y2-43-U9', 'R2-73-Z9', 'P2-83-N1', 55, NULL, '4475-045');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (false, true, 7730196, '8/19/2024', '2', '4900-281', 'Manitowish', '2790', 'Victoria', 90704.04, 'R2-23-R9', 'W2-03-Q2', 'B2-33-L1', 68, NULL, '4705-480');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (true, false, 7688895, '5/18/2025', '1', '2205-025', 'Bellgrove', '406', 'Pond', 85234.12, 'I2-33-M5', 'I2-93-J7', 'S2-83-P1', 55, NULL, '4900-281');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (true, true, 8639081, '11/10/2024', '5117', '3360-032', 'Trailsway', '1744', 'Hintze', 182129.05, 'Q2-53-O3', 'Z2-03-L1', 'P2-03-K1', 55, 4, '4900-281');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (false, false, 9554025, '10/14/2025', '071', '1000-139', 'Coleman', '9', 'Porter', 167884.88, 'I2-83-V8', 'A2-13-L3', 'O2-73-J1', 50, NULL, '4475-045');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (false, true, 9362522, '7/7/2025', '9528', '1000-139', 'Carey', '2', 'Fremont', 96364.42, 'P2-73-P3', 'N2-33-Z8', 'O2-73-J1', 54, NULL, '3420-177');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (true, false, 9515452, '8/19/2025', '68219', '2645-539', 'Melrose', '94', 'Erie', 23687.24, 'N2-43-H9', 'N2-23-N9', 'S2-03-Z1', 26, NULL, '4475-045');
-insert into Request (truck_availability, container_availability, cargo_weight, deadline, port_dest, postal_code_dest, street_dest, port_ori, street_ori, delivery_price, container_license, container_license_second, license, client, invoice, postal_code_ori) values (true, true, 9016718, '4/7/2024', '82511', '4490-666', 'Homewood', '601', 'Montana', 109557.63, 'A2-13-L3', 'I2-93-J7', 'H2-53-E1', 68, NULL, '4905-067');
-
 insert into DriverGroup (request, driver, kilometers) values (20, 14, 1241594);
 insert into DriverGroup (request, driver, kilometers) values (3, 21, 6362356);
 insert into DriverGroup (request, driver, kilometers) values (1, 11, 8834998);
@@ -859,78 +840,23 @@ insert into DriverGroup (request, driver, kilometers) values (4, 10, 4178506);
 insert into DriverGroup (request, driver, kilometers) values (19, 15, 5777494);
 insert into DriverGroup (request, driver, kilometers) values (12, 14, 7248777);
 insert into DriverGroup (request, driver, kilometers) values (7, 25, 8177975);
+-- Stored Procedures
 
-insert into HistoricState (start_date, state, request, guest) values ('2025-05-20', 5, 2, 29);
-insert into HistoricState (start_date, state, request, guest) values ('2023-10-24', 1, 3, 26);
-insert into HistoricState (start_date, state, request, guest) values ('2023-03-13', 5, 14, 66);
-insert into HistoricState (start_date, state, request, guest) values ('2023-11-02', 2, 3, 75);
-insert into HistoricState (start_date, state, request, guest) values ('2023-10-01', 5, 10, 28);
-insert into HistoricState (start_date, state, request, guest) values ('2025-06-25', 5, 5, 72);
-insert into HistoricState (start_date, state, request, guest) values ('2023-12-17', 1, 3, 36);
-insert into HistoricState (start_date, state, request, guest) values ('2023-02-28', 5, 6, 40);
-insert into HistoricState (start_date, state, request, guest) values ('2025-06-10', 5, 20, 71);
-insert into HistoricState (start_date, state, request, guest) values ('2022-05-11', 5, 16, 34);
-insert into HistoricState (start_date, state, request, guest) values ('2025-02-09', 1, 16, 27);
-insert into HistoricState (start_date, state, request, guest) values ('2022-12-24', 5, 9, 55);
-insert into HistoricState (start_date, state, request, guest) values ('2023-07-23', 5, 7, 42);
-insert into HistoricState (start_date, state, request, guest) values ('2024-03-17', 1, 12, 26);
-insert into HistoricState (start_date, state, request, guest) values ('2024-10-04', 2, 16, 61);
-insert into HistoricState (start_date, state, request, guest) values ('2025-07-31', 1, 6, 40);
-insert into HistoricState (start_date, state, request, guest) values ('2022-11-08', 4, 3, 45);
-insert into HistoricState (start_date, state, request, guest) values ('2024-06-05', 5, 8, 33);
-insert into HistoricState (start_date, state, request, guest) values ('2024-12-23', 1, 10, 48);
-insert into HistoricState (start_date, state, request, guest) values ('2025-05-09', 5, 13, 49);
-insert into HistoricState (start_date, state, request, guest) values ('2022-03-08', 1, 16, 64);
-insert into HistoricState (start_date, state, request, guest) values ('2025-07-17', 3, 10, 67);
-insert into HistoricState (start_date, state, request, guest) values ('2024-09-17', 1, 9, 48);
-insert into HistoricState (start_date, state, request, guest) values ('2022-08-24', 1, 6, 69);
-insert into HistoricState (start_date, state, request, guest) values ('2025-07-20', 1, 6, 54);
-insert into HistoricState (start_date, state, request, guest) values ('2024-06-29', 1, 7, 26);
-insert into HistoricState (start_date, state, request, guest) values ('2023-04-14', 5, 19, 29);
-insert into HistoricState (start_date, state, request, guest) values ('2025-05-12', 1, 2, 38);
-insert into HistoricState (start_date, state, request, guest) values ('2024-10-06', 4, 16, 34);
-insert into HistoricState (start_date, state, request, guest) values ('2025-03-15', 4, 9, 47);
-insert into HistoricState (start_date, state, request, guest) values ('2023-12-09', 6, 3, 48);
-insert into HistoricState (start_date, state, request, guest) values ('2023-08-23', 1, 6, 65);
-insert into HistoricState (start_date, state, request, guest) values ('2024-05-11', 4, 2, 25);
-insert into HistoricState (start_date, state, request, guest) values ('2025-09-25', 1, 5, 46);
-insert into HistoricState (start_date, state, request, guest) values ('2023-10-22', 1, 20, 72);
+-- Link Worker or Client to Request
+create or replace procedure link_guest (
+    guest_id int,
+    request_id int
+)
+language plpgsql
+as $$
+begin
 
-insert into GuestGroup (request, guest, begin_date, exit_date) values (1, 66, '2022-11-17', '2025-10-01');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (17, 73, '2022-04-17', '2023-08-24');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (8, 58, '2023-01-13', '2025-02-05');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (1, 74, '2022-11-28', '2025-09-27');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (14, 73, '2022-05-24', '2024-06-11');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (2, 70, '2022-04-30', '2022-04-29');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (11, 72, '2022-10-09', '2022-08-15');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (6, 54, '2022-03-24', '2022-04-21');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (7, 64, '2023-01-30', '2025-07-07');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (17, 48, '2022-10-03', '2024-09-14');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (15, 32, '2022-03-31', '2025-12-12');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (19, 49, '2023-01-05', '2025-07-27');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (9, 46, '2022-09-12', '2024-03-26');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 26, '2022-07-18', '2023-07-04');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (8, 55, '2022-08-18', '2023-10-19');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (1, 49, '2022-10-02', '2022-08-21');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 57, '2022-03-05', '2025-09-23');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (20, 49, '2022-11-06', '2025-08-03');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (18, 67, '2022-05-18', '2023-11-13');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (10, 45, '2022-05-14', '2024-04-11');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (13, 67, '2022-07-15', '2022-05-29');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (12, 43, '2022-10-13', '2025-02-26');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 52, '2022-05-24', '2022-05-27');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 49, '2022-05-30', '2023-05-21');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (12, 73, '2022-12-20', '2024-06-21');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (11, 62, '2022-04-07', '2024-07-27');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (8, 26, '2022-03-07', '2024-04-09');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (4, 57, '2022-08-22', '2025-02-05');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (14, 57, '2022-07-28', '2024-06-19');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (10, 54, '2022-05-17', '2023-07-14');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (17, 49, '2022-08-11', '2023-12-20');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (14, 27, '2023-01-01', '2023-02-16');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (2, 28, '2022-08-17', '2025-07-10');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 59, '2022-03-16', '2023-12-03');
-insert into GuestGroup (request, guest, begin_date, exit_date) values (3, 29, '2023-01-08', '2024-10-07');
+    -- Get Guest
+    insert into guestgroup (request, guest) values (request_id, guest_id);
+
+return;
+
+end $$;
 
 -- Sp to Add Client to the system
 CREATE OR replace PROCEDURE insertGuest (
@@ -952,6 +878,33 @@ BEGIN
 
     INSERT INTO Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) VALUES 
     (g_email, g_passwd, g_first_name, g_last_name, g_birth_date, g_nif, g_street, g_port, g_postal_code, g_telephone, g_type);
+
+END $$;
+
+-- Sp to Get Workers
+CREATE OR replace PROCEDURE getWorkers()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+    select
+        guest.id,
+        guest.email,
+        guest.passwd,
+        guest.first_name,
+        guest.last_name,
+        guest.birth_date,
+        guest.nif,
+        guest.street,
+        guest.port,
+        guest.postal_code,
+        guest.telephone,
+        guest.guest_type,
+        guest.is_enabled
+    from guest
+    inner join guestType gt
+        on guest.guest_type = gt.id
+    where gt.name <> 'Cliente';
 
 END $$;
 
