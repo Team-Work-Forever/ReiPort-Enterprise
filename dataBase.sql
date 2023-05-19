@@ -223,7 +223,7 @@ CREATE TABLE DriverGroup(
 
 CREATE TABLE HistoricState(
     id SERIAL NOT NULL,
-    start_date DATE DEFAULT now(),
+    start_date date DEFAULT now(),
     request INT NOT NULL,
     state INT NOT NULL,
     guest INT NOT NULL,
@@ -264,7 +264,6 @@ on container (license);
 
 create unique index indexVehicle
 on Vehicle (license);
-
 
 create view requestInfo
 as select
@@ -422,6 +421,7 @@ INSERT INTO guestType (name) VALUES ('Gestor');
 INSERT INTO guestType (name) VALUES ('Motorista');
 INSERT INTO guestType (name) VALUES ('Admin');
 
+insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('karen.deadshot@reiport-entreprise.trl', '$2a$10$vBZHAAqyMsH76QLc2jh2H.GdR8F1mBTL7dyvITOdl8n7YqAW.xKJu', 'Karen', 'DeadShot', '2002-12-25', '264939567', 'Gulseth', '36492', '3520-039', '286315192', 1);
 insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('cavas.callahan@reiport-entreprise.trl', '$2a$10$325Z0JxYAjQZxviCgwlChubVUrmganbEkawJxE0pwRQOlfolWDZ7G', 'Rudyard', 'McElwee', '2002-12-25', '264619567', 'Gulseth', '36492', '3520-039', '286315192', 4);
 insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('david.shot@reiport-entreprise.trl', '$2a$10$AH9Wgbq/MbehSfVE7uP5DuEeY1Fvnw8z925yIm1eGmjJ6FcYOKEYq', 'Rudyard', 'McElwee', '2002-12-25', '264633567', 'Gulseth', '36492', '3520-039', '286315192', 5);
 insert into Guest (email, passwd, first_name, last_name, birth_date, nif, street, port, postal_code, telephone, guest_type) values ('steven.cooper@reiport-entreprise.trl', '$2a$10$XW6/v9rXA205uAXBbAKrNu0F3XSyD5KDXRSNMQwTEErljzNHVni6u', 'Rudyard', 'McElwee', '2002-12-25', '264626567', 'Gulseth', '36492', '3520-039', '286315192', 3);
@@ -640,6 +640,11 @@ insert into Driver (id, has_adr, has_cam, cc, is_working) values (22, true, true
 insert into Driver (id, has_adr, has_cam, cc, is_working) values (23, false, true, '69219872', true);
 insert into Driver (id, has_adr, has_cam, cc, is_working) values (24, false, true, '67734477', false);
 insert into Driver (id, has_adr, has_cam, cc, is_working) values (25, true, false, '38382875', true);
+
+insert into Invoice (price_without_vat, price_with_vat, payment_date, nif, street, port, payment_method, postal_code) VALUES (9000.50, 11070.62, NULL, '119048328', 'Eastwood', '9', NULL, '1000-139');
+insert into Invoice (price_without_vat, price_with_vat, payment_date, nif, street, port, payment_method, postal_code) VALUES (1200.50, 1476.62, '2024-05-11', '715277279', 'Orin', '19736', 1, '4480-330');
+insert into Invoice (price_without_vat, price_with_vat, payment_date, nif, street, port, payment_method, postal_code) VALUES (15000.00, 18450.00, NULL, '715373426', 'Walton', '7', NULL, '4940-027');
+insert into Invoice (price_without_vat, price_with_vat, payment_date, nif, street, port, payment_method, postal_code) VALUES (6500.75, 7995.92, NULL, '455104181', 'Chinook', '5263', NULL, '4200-014');
 
 INSERT INTO Brand (name) VALUES ('Iveco');
 INSERT INTO Brand (name) VALUES ('Scania');
@@ -933,6 +938,43 @@ insert into GuestGroup (request, guest, begin_date, exit_date) values (5, 59, '2
 insert into GuestGroup (request, guest, begin_date, exit_date) values (3, 29, '2023-01-08', '2024-10-07');
 
 -- Stored Procedures
+
+-- Get all Request Information
+
+CREATE OR REPLACE FUNCTION get_request_info()
+RETURNS TABLE (
+    id int,
+    state int,
+    company_name varchar(100),
+    truck_availability boolean,
+    container_availability boolean,
+    cargo_weight numeric(9, 2),
+    deadline date,
+    delivery_price numeric(9, 2),
+    port_dest int,
+    street_dest varchar(100),
+    postal_code_dest varchar(8),
+    locality_dest varchar(100),
+    country_dest varchar(100),
+    port_ori int,
+    street_ori varchar(100),
+    postal_code_ori varchar(8), 
+    locality_ori varchar(100),
+    country_ori varchar(100),
+    container_first varchar(11),
+    container_second varchar(11),
+    license varchar(8),
+    client int,
+    invoice int,
+    created_at date
+  -- Add more columns as needed
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY SELECT * FROM requestinfo;
+END;
+$$;
 
 -- Link Worker or Client to Request
 create or replace procedure link_guest (
